@@ -4,8 +4,6 @@ Principles for writing effective agent prompts in iterative loops.
 
 *For an overview of agent-loop, see the [README](../README.md).*
 
-This guide expands on the prompting principles introduced in the README, providing detailed guidance for crafting effective prompts for iterative agents.
-
 ## 1. Describe the destination, not the steps
 
 Smart agents respond better to understanding what "good" looks like than to being told what to do. Instead of "remove duplicates," say "concepts appear once." The agent concludes *on its own* that duplicates should go—which produces better judgment about *which* duplicates and *how* to consolidate.
@@ -32,4 +30,8 @@ Phrases like "genuinely improve" and "don't reorganize for the sake of reorganiz
 
 ## 7. One purpose per prompt
 
-Mixing concerns creates conflicts. Clean separation lets each pass do its job well. This is why agent-loop uses separate modes that cycle through—each mode has a single focus.
+Clean separation lets each pass do its job well. agent-loop cycles through separate modes, each with a single focus.
+
+## Example in practice
+
+The built-in `docs-review` preset demonstrates these principles with three modes (accuracy, structure, clarity). Each mode has a single focus, uses destination-focused language, and treats conciseness as quality. See `src/agent_loop/presets/docs-review.yaml` for the full prompts.
