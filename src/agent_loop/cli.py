@@ -4,10 +4,10 @@ from pathlib import Path
 
 import click
 
-from . import __version__
-from .git import get_commits_since, get_repo, squash_commits
-from .loop import run_loop
-from .preset import find_preset, list_presets, load_preset
+from agent_loop import __version__
+from agent_loop.git import get_commits_since, get_repo, squash_commits
+from agent_loop.loop import run_loop
+from agent_loop.preset import find_preset, list_presets, load_preset
 
 
 def complete_preset_name(ctx, param, incomplete: str) -> list[str]:
@@ -121,14 +121,12 @@ modes:
     prompt: |
       Review the codebase for quality and accuracy.
       Make improvements where needed.
-      Commit any changes you make.
-
+      prompt_suffix: Commit any changes you make. Do not use the "question" tool or any tool requiring user input. Do not use the "question" tool or any tool requiring user input.
   - name: refine
     prompt: |
       Refine the codebase based on the previous review.
       Focus on clarity and consistency.
-      Commit any changes you make.
-"""
+      prompt_suffix: Commit any changes you make. Do not use the "question" tool or any tool requiring user input. Do not use the "question" tool or any tool requiring user input."""
 
     path.write_text(template)
     click.echo(f"Created preset: {filename}")

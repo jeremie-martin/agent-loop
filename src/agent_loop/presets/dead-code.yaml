@@ -1,6 +1,8 @@
 name: dead-code
 description: Remove unused code, imports, and stale artifacts
 
+prompt_suffix: Commit any changes you make. Do not use the "question" tool or any tool requiring user input.
+
 modes:
   - name: imports
     prompt: |
@@ -8,10 +10,7 @@ modes:
 
       Scan the codebase for imports that are never used. Tools and linters can help, but also look for: imports used only in commented-out code, imports that were needed for a feature since removed, wildcard imports that pull in far more than needed.
 
-      Remove unused imports. Tighten wildcard imports to explicit names where reasonable. But preserve imports that exist for side effects or that are re-exported for consumers.
-
-      Commit any changes you make.
-
+      prompt_suffix: Commit any changes you make. Do not use the "question" tool or any tool requiring user input. Do not use the "question" tool or any tool requiring user input.
   - name: unreachable
     prompt: |
       Dead code is a lie. It suggests functionality that doesn't exist, paths that can't be taken, options that aren't real.
@@ -22,10 +21,7 @@ modes:
 
       Remove what's truly dead. But verify before deleting—some code is called dynamically, through reflection, or from external entry points. When uncertain, leave it but add a TODO questioning its necessity.
 
-      Commit any changes you make.
-
-  - name: stale
-    prompt: |
+  - naprompt_suffix: Commit any changes you make. Do not use the "question" tool or any tool requiring user input. Do not use the "question" tool or any tool requiring user input.    prompt: |
       Comments rot faster than code. TODOs become lies. Explanations drift from what they explain.
 
       Look for stale artifacts: TODO comments for work that was done (or will never be done), comments that describe code that's since changed, disabled code preserved "just in case," documentation for removed features.
@@ -33,5 +29,4 @@ modes:
       Clean up the staleness. Delete TODOs that are done or irrelevant. Update or remove misleading comments. Delete commented-out code—version control remembers it if you ever need it back.
 
       But preserve comments that are still accurate and useful. The goal is truth, not minimalism.
-
-      Commit any changes you make.
+prompt_suffix: Commit any changes you make. Do not use the "question" tool or any tool requiring user input. Do not use the "question" tool or any tool requiring user input.

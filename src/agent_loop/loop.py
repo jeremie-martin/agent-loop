@@ -54,7 +54,7 @@ class LoopRunner:
 
         # Run the agent
         success = run_opencode(
-            prompt=mode.prompt,
+            prompt=self.preset.get_full_prompt(mode),
             dry_run=self.dry_run,
             verbose=self.verbose,
         )

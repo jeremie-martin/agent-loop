@@ -25,6 +25,18 @@ class Preset:
     description: str
     modes: list[Mode]
     path: Path | None = None
+    prompt_prefix: str | None = None
+    prompt_suffix: str | None = None
+
+    def get_full_prompt(self, mode: Mode) -> str:
+        """Return mode prompt with prefix/suffix applied."""
+        parts = []
+        if self.prompt_prefix:
+            parts.append(self.prompt_prefix.rstrip())
+        parts.append(mode.prompt.strip())
+        if self.prompt_suffix:
+            parts.append(self.prompt_suffix.strip())
+        return "\n\n".join(parts)
 
 
 def _parse_modes(data: list[dict[str, Any]]) -> list[Mode]:
@@ -58,6 +70,8 @@ def load_preset(path: Path) -> Preset:
         description=data.get("description", ""),
         modes=_parse_modes(data["modes"]),
         path=path,
+        prompt_prefix=data.get("prompt_prefix"),
+        prompt_suffix=data.get("prompt_suffix"),
     )
 
 

@@ -58,14 +58,12 @@ name: my-review
 description: Review files for quality
 
 modes:
-  - name: accuracy
-    prompt: |
+  - naprompt_suffix: Commit any changes you make. Do not use the "question" tool or any tool requiring user input. Do not use the "question" tool or any tool requiring user input.    prompt: |
       Review the codebase for technical accuracy.
       Fix any errors or outdated information.
       Commit any changes you make.
 
-  - name: clarity
-    prompt: |
+  - naprompt_suffix: Commit any changes you make. Do not use the "question" tool or any tool requiring user input. Do not use the "question" tool or any tool requiring user input.    prompt: |
       Review for readability. Each sentence should earn its place.
       Tighten prose without losing meaning.
       Commit any changes you make.

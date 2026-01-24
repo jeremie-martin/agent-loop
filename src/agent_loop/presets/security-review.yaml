@@ -1,6 +1,8 @@
 name: security-review
 description: Review codebase for security vulnerabilities and hardening opportunities
 
+prompt_suffix: Commit any changes you make. Do not use the "question" tool or any tool requiring user input.
+
 modes:
   - name: input-validation
     prompt: |
@@ -10,10 +12,7 @@ modes:
 
       Spawn sub-agents to explore different entry points if the codebase is large—HTTP handlers, CLI parsers, file readers, message consumers.
 
-      Add validation at trust boundaries. Sanitize, escape, or reject bad input before it can cause harm. Prefer allowlists over denylists. Fail closed.
-
-      Commit any changes you make.
-
+      prompt_suffix: Commit any changes you make. Do not use the "question" tool or any tool requiring user input. Do not use the "question" tool or any tool requiring user input.
   - name: access-control
     prompt: |
       Authorization errors are silent. Unlike crashes, they don't announce themselves—data simply leaks to the wrong eyes.
@@ -22,14 +21,10 @@ modes:
 
       Every protected operation should verify authorization. The check should happen as close to the operation as possible, not just at the entry point. When in doubt, deny access.
 
-      Commit any changes you make.
-
-  - name: secrets-and-logging
-    prompt: |
+  - naprompt_suffix: Commit any changes you make. Do not use the "question" tool or any tool requiring user input. Do not use the "question" tool or any tool requiring user input.    prompt: |
       Secrets in code are secrets shared with everyone who can read the repo. Secrets in logs are secrets shared with everyone who can read the logs.
 
       Search for hardcoded secrets: API keys, passwords, tokens, private keys. These belong in environment variables or secret managers, never in source. Check configuration files, test fixtures, comments, and documentation too.
 
       Review logging for sensitive data exposure. Passwords, tokens, PII, financial data—none of it should appear in logs, even at debug level. Ensure errors don't leak stack traces or internal details to end users.
-
-      Commit any changes you make.
+prompt_suffix: Commit any changes you make. Do not use the "question" tool or any tool requiring user input. Do not use the "question" tool or any tool requiring user input.
