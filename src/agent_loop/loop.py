@@ -19,11 +19,13 @@ class LoopRunner:
         dry_run: bool = False,
         verbose: bool = False,
         auto_squash: bool = True,
+        max_iterations: int | None = None,
     ):
         self.preset = preset
         self.dry_run = dry_run
         self.verbose = verbose
         self.auto_squash = auto_squash
+        self.max_iterations = max_iterations
         self.iteration = 0
         self.start_commit: str | None = None
         self._interrupted = False
@@ -112,6 +114,8 @@ class LoopRunner:
         print(f"Modes: {', '.join(m.name for m in self.preset.modes)}")
         if self.preset.settings.model:
             print(f"Model: {self.preset.settings.model}")
+        if self.max_iterations:
+            print(f"Max iterations: {self.max_iterations}")
         if self.dry_run:
             print("[DRY RUN MODE - no changes will be made]")
         print("Press Ctrl+C to stop")
@@ -126,6 +130,9 @@ class LoopRunner:
 
         try:
             while not self._interrupted:
+                if self.max_iterations and self.iteration >= self.max_iterations:
+                    self._log(f"Reached max iterations ({self.max_iterations})")
+                    break
                 self._run_iteration()
         finally:
             signal.signal(signal.SIGINT, original_handler)
@@ -158,7 +165,13 @@ class LoopRunner:
             self._log("Squash failed or no commits to squash")
 
 
-def run_loop(preset: Preset, dry_run: bool = False, verbose: bool = False, auto_squash: bool = True) -> None:
+def run_loop(
+    preset: Preset,
+    dry_run: bool = False,
+    verbose: bool = False,
+    auto_squash: bool = True,
+    max_iterations: int | None = None,
+) -> None:
     """Run the agent loop with the given preset."""
-    runner = LoopRunner(preset, dry_run=dry_run, verbose=verbose, auto_squash=auto_squash)
+    runner = LoopRunner(preset, dry_run=dry_run, verbose=verbose, auto_squash=auto_squash, max_iterations=max_iterations)
     runner.run()

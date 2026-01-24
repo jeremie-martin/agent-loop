@@ -23,7 +23,8 @@ def main() -> None:
 @click.option("--dry-run", is_flag=True, help="Show what would happen without executing")
 @click.option("--verbose", "-v", is_flag=True, help="Enable verbose output")
 @click.option("--no-squash", is_flag=True, help="Don't squash commits on stop")
-def run(preset_name: str | None, config: Path | None, dry_run: bool, verbose: bool, no_squash: bool) -> None:
+@click.option("-n", "--max-iterations", type=int, help="Maximum number of iterations to run")
+def run(preset_name: str | None, config: Path | None, dry_run: bool, verbose: bool, no_squash: bool, max_iterations: int | None) -> None:
     """Run an agent loop with the specified preset.
 
     PRESET_NAME is the name of a built-in preset (use 'agent-loop list' to see available presets).
@@ -47,7 +48,7 @@ def run(preset_name: str | None, config: Path | None, dry_run: bool, verbose: bo
     except Exception as e:
         raise click.ClickException(f"Failed to load preset: {e}")
 
-    run_loop(preset, dry_run=dry_run, verbose=verbose, auto_squash=not no_squash)
+    run_loop(preset, dry_run=dry_run, verbose=verbose, auto_squash=not no_squash, max_iterations=max_iterations)
 
 
 @main.command("list")
