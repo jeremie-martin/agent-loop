@@ -40,12 +40,14 @@ def run(preset_name: str | None, config: Path | None, dry_run: bool, verbose: bo
     will be squashed into a single commit.
     """
     # Determine which preset to load
+    preset_path: Path
     if config:
         preset_path = config
     elif preset_name:
-        preset_path = find_preset(preset_name)
-        if not preset_path:
+        found = find_preset(preset_name)
+        if not found:
             raise click.ClickException(f"Preset '{preset_name}' not found. Use 'agent-loop list' to see available presets.")
+        preset_path = found
     else:
         raise click.ClickException("Either PRESET_NAME or --config must be specified")
 
@@ -116,17 +118,17 @@ def init(name: str) -> None:
     template = f"""name: {name}
 description: Add your description here
 
+prompt_suffix: Commit any changes you make. Do not use the "question" tool or any tool requiring user input.
+
 modes:
   - name: review
     prompt: |
       Review the codebase for quality and accuracy.
       Make improvements where needed.
-      prompt_suffix: Commit any changes you make. Do not use the "question" tool or any tool requiring user input. Do not use the "question" tool or any tool requiring user input.
   - name: refine
     prompt: |
       Refine the codebase based on the previous review.
-      Focus on clarity and consistency.
-      prompt_suffix: Commit any changes you make. Do not use the "question" tool or any tool requiring user input. Do not use the "question" tool or any tool requiring user input."""
+      Focus on clarity and consistency."""
 
     path.write_text(template)
     click.echo(f"Created preset: {filename}")

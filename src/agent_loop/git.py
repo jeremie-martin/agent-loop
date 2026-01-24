@@ -72,7 +72,10 @@ def squash_commits(repo: Repo, since_commit: str, message: str | None = None) ->
         commit_messages = []
         for c in commits:
             commit_obj = repo.commit(c)
-            commit_messages.append(f"- {commit_obj.message.strip().split(chr(10))[0]}")
+            msg = commit_obj.message
+            if isinstance(msg, bytes):
+                msg = msg.decode("utf-8")
+            commit_messages.append(f"- {msg.strip().split(chr(10))[0]}")
         message = "Squashed commits:\n" + "\n".join(commit_messages)
 
     # Soft reset to the starting commit, then recommit everything
@@ -101,7 +104,10 @@ def generate_squash_message_with_agent(repo: Repo, since_commit: str) -> str | N
     commit_info = []
     for c in commits:
         commit_obj = repo.commit(c)
-        commit_info.append(commit_obj.message.strip())
+        msg = commit_obj.message
+        if isinstance(msg, bytes):
+            msg = msg.decode("utf-8")
+        commit_info.append(msg.strip())
 
     prompt = f"""Write a git commit message summarizing these changes. Be specific about what was actually changed.
 

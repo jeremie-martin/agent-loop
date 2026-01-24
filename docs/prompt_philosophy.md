@@ -6,7 +6,7 @@ Principles for writing effective agent prompts in iterative loops.
 
 ## 1. Describe the destination, not the steps
 
-Smart agents respond better to understanding what "good" looks like than to being told what to do. Instead of "remove duplicates," say "concepts appear once." The agent concludes *on its own* that duplicates should go—which produces better judgment about *which* duplicates and *how* to consolidate.
+Smart agents respond better to understanding what "good" looks like than to being told what to do. Instead of "remove duplicates," say "concepts appear once." The agent concludes on its own that duplicates should go, which produces better judgment about which duplicates and how to consolidate.
 
 ## 2. Frame conciseness as quality, not constraint
 

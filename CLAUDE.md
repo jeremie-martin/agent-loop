@@ -4,7 +4,7 @@ Guidance for Claude Code when working with this repository.
 
 *For project overview and usage, see the [README](README.md).*
 
-## Quick Commands
+## Development Commands
 
 ```bash
 # Lint
@@ -13,6 +13,9 @@ ruff check . --fix  # auto-fix
 
 # Format
 ruff format .
+
+# Type check
+mypy src/
 
 # Test
 pytest
@@ -27,8 +30,7 @@ src/agent_loop/
 ├── preset.py       # Preset loading (Mode, Preset dataclasses)
 ├── runner.py       # opencode subprocess wrapper
 ├── git.py          # Git operations (commit, squash)
-└── presets/        # Built-in preset YAML files
-    └── docs-review.yaml
+└── presets/        # Built-in preset YAML files (accessibility, api-docs, code-refactor, dead-code, dependency-audit, docs-review, error-handling, frontend-style, migration, prose-tightening, security-review, test-strengthening, type-tightening)
 ```
 
 ## Key Files
@@ -38,7 +40,7 @@ src/agent_loop/
 - `preset.py` - YAML parsing, Mode/Preset dataclasses
 - `runner.py` - Subprocess wrapper for opencode CLI
 - `git.py` - Commit and squash operations
-- `presets/*.yaml` - Built-in presets (docs-review)
+- `presets/*.yaml` - Built-in presets (12 presets for various code and documentation review tasks)
 
 ## Development Notes
 

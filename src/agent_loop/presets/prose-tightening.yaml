@@ -22,7 +22,7 @@ modes:
 
       Reshape structure where it helps readers navigate. But don't restructure for its own sake—if readers can already find their way, leave it alone.
 
-  - name: cision
+  - name: concision
     prompt: |
       Concise prose respects the reader's time. Every sentence should earn its place; every word should pull its weight.
 
