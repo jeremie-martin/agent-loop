@@ -78,6 +78,7 @@ For a complete example with three well-crafted modes, see the built-in `docs-rev
 | `agent-loop list` | List available built-in presets |
 | `agent-loop init <name>` | Create a new preset template |
 | `agent-loop squash --since <hash> [-m <message>]` | Squash commits since a given hash (generates message from commits if `-m` omitted) |
+| `agent-loop completion <shell>` | Generate shell completion script (bash/zsh/fish) |
 
 ### Run options
 
@@ -85,6 +86,21 @@ For a complete example with three well-crafted modes, see the built-in `docs-rev
 - `-v, --verbose`: Enable verbose output
 - `--no-squash`: Don't squash commits when stopping
 - `-n, --max-iterations`: Maximum number of iterations to run
+
+## Shell Completion
+
+Enable tab completion for preset names:
+
+```bash
+# Bash (~/.bashrc)
+eval "$(agent-loop completion bash)"
+
+# Zsh (~/.zshrc)
+eval "$(agent-loop completion zsh)"
+
+# Fish
+agent-loop completion fish > ~/.config/fish/completions/agent-loop.fish
+```
 
 ## How it works
 

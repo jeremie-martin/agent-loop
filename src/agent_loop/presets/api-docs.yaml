@@ -1,0 +1,37 @@
+name: api-docs
+description: Improve API documentation accuracy, examples, and consistency
+
+modes:
+  - name: accuracy
+    prompt: |
+      API docs are a contract. When they lie, developers build on false assumptions and blame themselves when things break.
+
+      Compare documented APIs against actual implementation. Spawn sub-agents to explore different API areas—one for endpoints, one for parameters, one for responses.
+
+      Look for: endpoints that exist but aren't documented, parameters missing from docs, response shapes that don't match reality, status codes that aren't mentioned, authentication requirements that aren't clear.
+
+      Align documentation with implementation. If something works differently than documented, fix the docs (or flag the code as buggy, if the docs represent intended behavior).
+
+      Commit any changes you make.
+
+  - name: examples
+    prompt: |
+      Examples teach faster than explanations. A working code snippet answers questions that paragraphs of description leave open.
+
+      Review API documentation for example quality. Every endpoint should have at least a basic request/response example. Complex features need examples showing common use cases.
+
+      Look for: missing examples, examples that don't actually work, examples that show only the happy path, examples with hardcoded values that should be clearly placeholder.
+
+      Add examples where they're missing. Fix examples that are broken. Ensure examples are copy-paste-runnable where possible—developers will try them.
+
+      Commit any changes you make.
+
+  - name: consistency
+    prompt: |
+      Consistent documentation is navigable documentation. When every endpoint follows the same structure, developers know where to look.
+
+      Review API docs for consistency across endpoints and features. Look for: varying section orders, inconsistent parameter formats, different conventions for describing the same concepts, mixed terminology for similar ideas.
+
+      Harmonize without homogenizing. Endpoints should follow a predictable structure and use consistent language. But preserve meaningful variation—if one endpoint genuinely differs from others, that difference should be visible, not papered over.
+
+      Commit any changes you make.

@@ -1,0 +1,35 @@
+name: error-handling
+description: Improve error handling coverage, robustness, and message quality
+
+modes:
+  - name: gaps
+    prompt: |
+      Unhandled errors are time bombs. They wait for production, for the demo, for the worst possible moment.
+
+      Explore the codebase looking for operations that can fail but don't account for failure: file operations, network calls, parsing, external commands, resource allocation. What happens when they fail? An unhandled exception? Silent corruption? Undefined behavior?
+
+      Use sub-agents to explore different subsystems—one for I/O operations, one for external integrations, one for data processing.
+
+      Identify the gaps. You don't need to fix them all in this pass—just build a clear picture of where the codebase is fragile.
+
+      Commit any changes you make (even if just adding TODO comments for major gaps).
+
+  - name: handling
+    prompt: |
+      Good error handling is precise. It catches specific failures, responds appropriately, and lets unexpected errors propagate.
+
+      For the gaps identified (or any you discover), add appropriate handling. Consider for each: Should this be retried? Logged? Reported to the user? Escalated? Swallowed? The answer depends on context—a missing optional config file is different from a corrupted database.
+
+      Avoid bare except clauses that catch everything. Avoid swallowing errors silently. Avoid catching errors only to re-raise them unchanged. Each handler should earn its place by doing something meaningful.
+
+      Commit any changes you make.
+
+  - name: messages
+    prompt: |
+      An error message is a conversation with someone having a bad day. It should tell them what happened, why it matters, and what they can do about it.
+
+      Review error messages throughout the codebase. Generic messages like "An error occurred" or "Invalid input" waste the user's time. Technical messages like "NullPointerException at line 47" leak implementation details without helping.
+
+      Improve messages to be specific and actionable. "Invalid input" becomes "Email address must contain @". "Connection failed" becomes "Could not reach api.example.com—check your network connection". Include enough context to diagnose, but not so much that the message overwhelms.
+
+      Commit any changes you make.

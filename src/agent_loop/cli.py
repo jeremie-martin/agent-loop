@@ -10,6 +10,12 @@ from .loop import run_loop
 from .preset import find_preset, list_presets, load_preset
 
 
+def complete_preset_name(ctx, param, incomplete: str) -> list[str]:
+    """Shell completion for preset names."""
+    presets = list_presets()
+    return [name for name, _ in presets if name.startswith(incomplete)]
+
+
 @click.group()
 @click.version_option(version=__version__)
 def main() -> None:
@@ -18,7 +24,7 @@ def main() -> None:
 
 
 @main.command()
-@click.argument("preset_name", required=False)
+@click.argument("preset_name", required=False, shell_complete=complete_preset_name)
 @click.option("--config", "-c", type=click.Path(exists=True, path_type=Path), help="Path to a custom preset YAML file")
 @click.option("--dry-run", is_flag=True, help="Show what would happen without executing")
 @click.option("--verbose", "-v", is_flag=True, help="Enable verbose output")
@@ -127,6 +133,36 @@ modes:
     path.write_text(template)
     click.echo(f"Created preset: {filename}")
     click.echo(f"Edit the file and run: agent-loop run --config {filename}")
+
+
+@main.command()
+@click.argument("shell", type=click.Choice(["bash", "zsh", "fish"]))
+def completion(shell: str) -> None:
+    """Generate shell completion script.
+
+    To enable completions, add to your shell config:
+
+    \b
+    # Bash (~/.bashrc)
+    eval "$(agent-loop completion bash)"
+
+    \b
+    # Zsh (~/.zshrc)
+    eval "$(agent-loop completion zsh)"
+
+    \b
+    # Fish (~/.config/fish/completions/agent-loop.fish)
+    agent-loop completion fish > ~/.config/fish/completions/agent-loop.fish
+    """
+
+    from click.shell_completion import get_completion_class
+
+    comp_cls = get_completion_class(shell)
+    if comp_cls is None:
+        raise click.ClickException(f"Unsupported shell: {shell}")
+
+    comp = comp_cls(main, {}, "agent-loop", "_AGENT_LOOP_COMPLETE")
+    click.echo(comp.source())
 
 
 if __name__ == "__main__":

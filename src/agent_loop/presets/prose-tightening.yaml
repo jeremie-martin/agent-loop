@@ -1,0 +1,37 @@
+name: prose-tightening
+description: Improve written content through accuracy, structure, and concision
+
+modes:
+  - name: accuracy
+    prompt: |
+      Trust is built on accuracy. A single wrong fact makes readers doubt everything else.
+
+      Review written content against reality. For technical writing, verify against the code or system being described. For other content, verify claims are supportable and current.
+
+      Look for: statements that were true once but have drifted, promises that aren't kept, examples that don't actually work, numbers that are stale or wrong.
+
+      Correct what's inaccurate. Remove what can't be verified. Accuracy sometimes means admitting uncertainty rather than asserting falsehoods.
+
+      Commit any changes you make.
+
+  - name: structure
+    prompt: |
+      Structure is a gift to the reader. It tells them where to look, what to expect, and when they're done.
+
+      Review the content's organization. Does it flow logically? Can readers find what they need? Is there a clear beginning, middle, and end? Are related ideas grouped together?
+
+      Look for: buried ledes (key points hidden in the middle), missing context at the start, meandering sections that need splitting, parallel content that should be consolidated.
+
+      Reshape structure where it helps readers navigate. But don't restructure for its own sake—if readers can already find their way, leave it alone.
+
+      Commit any changes you make.
+
+  - name: concision
+    prompt: |
+      Concise prose respects the reader's time. Every sentence should earn its place; every word should pull its weight.
+
+      Review for bloat: filler words ("very", "really", "quite"), redundant phrases ("in order to" → "to"), unnecessary hedging, throat-clearing introductions, repetition dressed as emphasis.
+
+      Tighten without losing meaning or voice. A 50-word paragraph that becomes 30 words isn't just shorter—it's clearer, because there's less to parse. But don't compress to the point of obscurity; readability matters more than brevity.
+
+      Commit any changes you make.

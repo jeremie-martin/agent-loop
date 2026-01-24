@@ -1,0 +1,37 @@
+name: accessibility
+description: Improve web accessibility through semantic HTML, ARIA, and keyboard support
+
+modes:
+  - name: semantics
+    prompt: |
+      Semantic HTML is accessibility's foundation. Screen readers, search engines, and browsers all understand native elements—divs and spans tell them nothing.
+
+      Explore the frontend codebase looking at HTML structure. Spawn sub-agents to examine different areas—components, pages, layouts.
+
+      Look for: divs that should be buttons or links, spans that should be headings, clickable divs lacking button roles, lists of items not using ul/ol, missing landmark elements (main, nav, header, footer), form inputs without labels.
+
+      Replace generic elements with semantic ones where appropriate. A `<button>` comes with keyboard handling and screen reader announcements for free; a `<div onclick>` has to earn those features the hard way.
+
+      Commit any changes you make.
+
+  - name: aria
+    prompt: |
+      ARIA is a repair kit, not a first choice. It exists to make custom widgets accessible when native elements can't do the job.
+
+      Review uses of ARIA throughout the codebase. Look for: missing ARIA labels on icon buttons, custom widgets lacking appropriate roles, dynamic content changes not announced (aria-live), missing aria-expanded on toggles, invalid ARIA (roles that don't exist, conflicting attributes).
+
+      Add ARIA where it's needed—primarily on custom interactive widgets. Remove ARIA that conflicts with native semantics (buttons with role="button" are redundant). Ensure ARIA is correct; wrong ARIA is worse than none.
+
+      Commit any changes you make.
+
+  - name: keyboard
+    prompt: |
+      Not everyone uses a mouse. Keyboard navigation isn't an edge case—it's essential for motor impairments, power users, and anyone whose trackpad died.
+
+      Navigate through the interface using only keyboard. Tab through all interactive elements. Try to operate every control without a mouse.
+
+      Look for: unreachable elements (no tab stop), invisible focus indicators, focus traps (can't tab out), illogical tab order, custom widgets missing keyboard handlers, mouse-only interactions.
+
+      Make everything operable by keyboard. Ensure focus is visible. Follow expected keyboard conventions (Enter to activate, Escape to dismiss, arrow keys in menus). Test that focus management makes sense during dynamic changes.
+
+      Commit any changes you make.

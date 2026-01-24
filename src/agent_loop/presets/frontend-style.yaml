@@ -1,0 +1,51 @@
+name: frontend-style
+description: Establish coherent, centralized styling with systematic visual decisions
+
+modes:
+  - name: inventory
+    prompt: |
+      A coherent visual system starts with understanding the current state. Before centralizing anything, map where visual decisions currently live.
+
+      Explore the frontend codebase—CSS files, style blocks, inline styles, component styles, theme files, utility classes. Spawn sub-agents to examine different areas if the codebase is large.
+
+      Build a picture of: Where are colors defined? How many different spacing values exist? Are typography choices systematic or ad-hoc? What naming conventions are in use? Where do breakpoints live? Are there multiple sources of truth that might conflict?
+
+      Note patterns and anti-patterns. You're not fixing yet—you're mapping. Add comments or create a style audit document identifying what exists and where.
+
+      Commit any changes you make.
+
+  - name: centralization
+    prompt: |
+      Visual decisions should live in one place. When "primary blue" is defined once, changing it changes everything—and everything stays in sync.
+
+      Based on the inventory, establish (or strengthen) a centralized system. This might mean: CSS custom properties for colors/spacing/typography, a design tokens file, a theme configuration, or whatever pattern fits the project.
+
+      Create the central definitions. Extract hardcoded values into named tokens. Colors become `--color-primary`, not `#3b82f6`. Spacing becomes `--space-4`, not `16px`. Font sizes follow a scale. Shadows, radii, transitions—anything that repeats—gets a name and a home.
+
+      Don't try to centralize everything at once. Start with the highest-impact decisions: colors, spacing scale, typography scale. Leave edge cases for later.
+
+      Commit any changes you make.
+
+  - name: adoption
+    prompt: |
+      A design system only works if the codebase uses it. Centralized tokens that nobody references are just documentation.
+
+      Sweep through the codebase replacing hardcoded values with their token equivalents. `#3b82f6` becomes `var(--color-primary)`. `margin: 16px` becomes `margin: var(--space-4)`. `font-size: 14px` becomes the appropriate typography token.
+
+      Spawn sub-agents to handle different areas—one for color adoption, one for spacing, one for typography—if the codebase is large.
+
+      When you find values that don't match any token, decide: Should this be a new token (if it represents a meaningful decision)? Or should it use an existing token (if it's just a slight variation that should be consolidated)?
+
+      Commit any changes you make.
+
+  - name: coherence
+    prompt: |
+      A style system should feel intentional. Not just organized—coherent. The parts should relate to each other in ways that make visual sense.
+
+      Review the centralized system as a whole. Does the spacing scale have consistent ratios? Does the color palette work together? Are there tokens that exist but don't fit the system's logic? Are naming conventions consistent and predictable?
+
+      Look for: orphan values that don't fit the scale, inconsistent naming (is it `--color-gray-500` or `--color-medium-gray`?), missing steps in scales, tokens that duplicate each other semantically.
+
+      Refine the system. Adjust scales to be more systematic. Consolidate near-duplicates. Fill gaps where the scale jumps oddly. The goal: someone new could look at the tokens and understand the system's logic.
+
+      Commit any changes you make.
