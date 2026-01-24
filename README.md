@@ -18,6 +18,10 @@ Useful for iterative document review, code refactoring, or any task where you wa
 ## Installation
 
 ```bash
+# Install as a uv tool (recommended, installs to ~/.local/bin)
+uv tool install /path/to/agent-loop
+
+# Or for development (editable)
 pip install -e .
 ```
 
