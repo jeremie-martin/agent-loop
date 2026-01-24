@@ -55,4 +55,5 @@ modes:
       {files}
 
 settings:
+  model: "zai-coding-plan/glm-4.7"
   commit_message_template: "[docs:{mode}] iteration {n}"
