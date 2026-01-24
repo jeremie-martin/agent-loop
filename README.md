@@ -21,9 +21,19 @@ Useful for iterative document review, code refactoring, or any task where you wa
 # Install as a uv tool (recommended, installs to ~/.local/bin)
 uv tool install /path/to/agent-loop
 
+# Update after changes (reinstall to pick up version changes)
+uv tool install . --reinstall
+
 # Or for development (editable)
 pip install -e .
 ```
+
+### Versioning
+
+Versions are automatically derived from git tags using `hatch-vcs`:
+- Tag `v0.1.0` → version `0.1.0`
+- New commits on tagged version → `0.1.1.dev1+HASH`
+- Create a new release: `git tag v0.2.0` then reinstall
 
 ## Quick Start
 
@@ -130,6 +140,23 @@ See [docs/prompt_philosophy.md](docs/prompt_philosophy.md) for detailed guidance
 ## Contributing
 
 For development guidance, code structure, and contributor notes, see [CLAUDE.md](CLAUDE.md).
+
+### Development Tools
+
+```bash
+# Install dev dependencies
+pip install -e ".[dev]"
+
+# Run linting
+ruff check .
+ruff check . --fix  # auto-fix issues
+
+# Format code
+ruff format .
+
+# Run tests
+pytest
+```
 
 ## License
 

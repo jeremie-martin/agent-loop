@@ -13,6 +13,9 @@ ruff check . --fix  # auto-fix
 
 # Format
 ruff format .
+
+# Test
+pytest
 ```
 
 ## Code Structure
