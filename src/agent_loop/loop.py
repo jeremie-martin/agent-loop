@@ -5,7 +5,7 @@ import sys
 from datetime import datetime
 from pathlib import Path
 
-from .git import commit_changes, get_current_commit, get_repo, has_changes, squash_commits
+from .git import commit_changes, generate_squash_message_with_agent, get_current_commit, get_repo, has_changes, squash_commits
 from .preset import Preset, resolve_files
 from .runner import run_opencode
 
@@ -155,9 +155,15 @@ class LoopRunner:
 
         print()
         self._log(f"Squashing commits since {self.start_commit[:8]}...")
+        self._log("Generating commit message...")
 
-        # Generate a simple squash message
-        message = f"[agent-loop] {self.preset.name}: {self.iteration} iterations"
+        # Use agent to generate a meaningful squash message
+        message = generate_squash_message_with_agent(repo, self.start_commit, model=self.preset.settings.model)
+
+        if not message:
+            # Fallback if agent fails
+            message = f"[agent-loop] {self.preset.name}: {self.iteration} iterations"
+            self._log("Agent failed to generate message, using fallback")
 
         if squash_commits(repo, self.start_commit, message):
             self._log(f"Squashed into: {message}")

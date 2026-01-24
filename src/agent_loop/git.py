@@ -101,16 +101,15 @@ def generate_squash_message_with_agent(repo: Repo, since_commit: str, model: str
         commit_obj = repo.commit(c)
         commit_info.append(commit_obj.message.strip())
 
-    prompt = f"""Generate a concise, meaningful commit message for squashing these commits.
-The message should summarize what changed overall, not list individual commits.
+    prompt = f"""Write a git commit message summarizing these changes. Be specific about what was actually changed.
 
-Commits being squashed:
+Individual commits:
 {chr(10).join(f"- {m}" for m in commit_info)}
 
-Diff summary:
+Files changed:
 {diff}
 
-Output ONLY the commit message, nothing else. Keep it under 100 characters for the first line.
+Output ONLY the commit message—no preamble, no explanation. First line under 72 chars, then blank line, then brief body if needed.
 """
 
     cmd = ["opencode", "run", prompt]
