@@ -1,0 +1,48 @@
+name: single-file-review
+description: Iteratively review and refine a single file
+
+# Override files.pattern when running:
+#   agent-loop run single-file-review --config ...
+# or create a custom preset based on this one
+files:
+  pattern: "README.md"
+
+modes:
+  - name: accuracy
+    prompt: |
+      Review this file for technical accuracy.
+
+      Every claim should be verifiable. Code examples should work.
+      Instructions should be complete and correct.
+
+      If you find issues, fix them directly. Commit any changes.
+
+      File:
+      {files}
+
+  - name: coherence
+    prompt: |
+      Review this file as a whole document.
+
+      Does it read as a coherent piece? Is the structure logical?
+      Are there redundancies or gaps?
+
+      Make improvements directly. Commit any changes.
+
+      File:
+      {files}
+
+  - name: polish
+    prompt: |
+      Final polish pass on this file.
+
+      Tighten prose. Improve flow. Fix any awkward phrasing.
+      Each sentence should earn its place.
+
+      Make improvements directly. Commit any changes.
+
+      File:
+      {files}
+
+settings:
+  commit_message_template: "[review:{mode}] iteration {n}"

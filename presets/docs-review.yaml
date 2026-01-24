@@ -1,0 +1,53 @@
+name: docs-review
+description: Review documentation for quality, accuracy, and coherence
+
+files:
+  pattern: "**/*.md"
+  exclude:
+    - "node_modules/**"
+    - ".git/**"
+    - "vendor/**"
+
+modes:
+  - name: alignment
+    prompt: |
+      Review these documentation files for accuracy against the implementation.
+
+      Each claim should reflect current behavior. Terminology should match the codebase.
+      Flag any discrepancies between what the docs say and what the code does.
+
+      If you find issues, fix them directly. If you made changes, stage and commit them.
+
+      Files:
+      {files}
+
+  - name: structure
+    prompt: |
+      Review how these documents work together as a system.
+
+      Consider: Does the structure serve the content? Are there sections that overlap
+      or repeat each other? Does each section feel necessary and well-placed?
+
+      If you identify opportunities to improve coherence through restructuring,
+      merging, or tightening, apply them directly. But only make changes that
+      genuinely improve clarity; don't reorganize for the sake of reorganizing.
+
+      If you made changes, stage and commit them.
+
+      Files:
+      {files}
+
+  - name: clarity
+    prompt: |
+      Review for readability and conciseness.
+
+      Each sentence should earn its place. Paragraphs should have clear focus.
+      Remove filler phrases and redundant explanations.
+
+      Apply changes directly. If you made changes, stage and commit them.
+
+      Files:
+      {files}
+
+settings:
+  commit_message_template: "[docs-review:{mode}] iteration {n}"
