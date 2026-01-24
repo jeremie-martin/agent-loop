@@ -2,6 +2,8 @@
 
 Guidance for Claude Code when working with this repository.
 
+*For project overview and usage, see the [README](README.md).*
+
 ## Quick Commands
 
 ```bash

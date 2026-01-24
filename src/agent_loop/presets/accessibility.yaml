@@ -12,7 +12,6 @@ modes:
 
       Look for: divs that should be buttons or links, spans that should be headings, clickable divs lacking button roles, lists of items not using ul/ol, missing landmark elements (main, nav, header, footer), form inputs without labels.
 
-      prompt_suffix: Commit any changes you make. Do not use the "question" tool or any tool requiring user input. Do not use the "question" tool or any tool requiring user input.
   - name: aria
     prompt: |
       ARIA is a repair kit, not a first choice. It exists to make custom widgets accessible when native elements can't do the job.
@@ -21,7 +20,8 @@ modes:
 
       Add ARIA where it's needed—primarily on custom interactive widgets. Remove ARIA that conflicts with native semantics (buttons with role="button" are redundant). Ensure ARIA is correct; wrong ARIA is worse than none.
 
-  - naprompt_suffix: Commit any changes you make. Do not use the "question" tool or any tool requiring user input. Do not use the "question" tool or any tool requiring user input.    prompt: |
+  - name: keyboard
+    prompt: |
       Not everyone uses a mouse. Keyboard navigation isn't an edge case—it's essential for motor impairments, power users, and anyone whose trackpad died.
 
       Navigate through the interface using only keyboard. Tab through all interactive elements. Try to operate every control without a mouse.
@@ -29,4 +29,3 @@ modes:
       Look for: unreachable elements (no tab stop), invisible focus indicators, focus traps (can't tab out), illogical tab order, custom widgets missing keyboard handlers, mouse-only interactions.
 
       Make everything operable by keyboard. Ensure focus is visible. Follow expected keyboard conventions (Enter to activate, Escape to dismiss, arrow keys in menus). Test that focus management makes sense during dynamic changes.
-prompt_suffix: Commit any changes you make. Do not use the "question" tool or any tool requiring user input. Do not use the "question" tool or any tool requiring user input.

@@ -12,7 +12,6 @@ modes:
 
       Spawn sub-agents to search for specific patterns once you understand what to look for. Build a picture of where the legacy code lives and how entangled it is.
 
-      prompt_suffix: Commit any changes you make. Do not use the "question" tool or any tool requiring user input. Do not use the "question" tool or any tool requiring user input.
   - name: update
     prompt: |
       With the inventory in hand, update the deprecated patterns to their modern equivalents.
@@ -23,7 +22,8 @@ modes:
 
       When the modern alternative has different semantics, add tests before changing (if tests don't exist) to catch regressions.
 
-  - naprompt_suffix: Commit any changes you make. Do not use the "question" tool or any tool requiring user input. Do not use the "question" tool or any tool requiring user input.    prompt: |
+  - name: verification
+    prompt: |
       Migration isn't done until you've confirmed nothing broke. "It compiles" is necessary but not sufficient.
 
       Review the changes made in previous iterations. Run tests, try the application, check edge cases.
@@ -31,4 +31,3 @@ modes:
       Look for: behavior changes that might have slipped in, error handling differences between old and new APIs, performance regressions, features that stopped working.
 
       Fix what's broken. If tests are missing for migrated functionality, add them. If something can't be verified automatically, document how to verify it manually.
-prompt_suffix: Commit any changes you make. Do not use the "question" tool or any tool requiring user input. Do not use the "question" tool or any tool requiring user input.

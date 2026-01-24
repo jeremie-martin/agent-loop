@@ -10,7 +10,6 @@ modes:
 
       Explore the codebase and identify functions, parameters, and return values that lack type annotations. Prioritize public interfaces and module boundaries—these are contracts with callers who deserve to know what they're working with.
 
-      prompt_suffix: Commit any changes you make. Do not use the "question" tool or any tool requiring user input. Do not use the "question" tool or any tool requiring user input.
   - name: precision
     prompt: |
       Broad types are barely better than no types. `Any` catches nothing. `dict` says nothing about shape. `list` doesn't reveal what's inside.
@@ -19,10 +18,10 @@ modes:
 
       But don't over-specify. If a function genuinely accepts any iterable, don't demand a list. Match the type to the actual requirement, no tighter and no looser.
 
-  - naprompt_suffix: Commit any changes you make. Do not use the "question" tool or any tool requiring user input. Do not use the "question" tool or any tool requiring user input.    prompt: |
+  - name: consistency
+    prompt: |
       A codebase should speak one type dialect. Mixed conventions—sometimes Optional, sometimes Union with None, sometimes implicit—create friction and hide bugs.
 
       Review the codebase for type consistency. Are similar concepts typed the same way? Do related functions use compatible signatures? Are there type aliases that should exist but don't, or that exist but aren't used consistently?
 
       Harmonize where beneficial. Introduce type aliases for domain concepts that appear repeatedly. Align signatures of functions that should be interchangeable. But preserve intentional variation—not everything should be squeezed into the same shape.
-prompt_suffix: Commit any changes you make. Do not use the "question" tool or any tool requiring user input. Do not use the "question" tool or any tool requiring user input.

@@ -12,7 +12,6 @@ modes:
 
       For each documentation file, consider: Does this reflect the current state of the project? Are there claims that have gone stale, or capabilities that exist but aren't surfaced? Does terminology match what the code actually calls things?
 
-      prompt_suffix: Commit any changes you make. Do not use the "question" tool or any tool requiring user input. Do not use the "question" tool or any tool requiring user input.
   - name: structure
     prompt: |
       Consider the documentation as a whole—not the accuracy of individual files, but how they work together as a system readers navigate.
@@ -23,7 +22,8 @@ modes:
 
       If restructuring, consolidating, or reshaping would improve navigability, apply those changes. But preserve what already works—don't reorganize documentation that readers can already find their way through.
 
-  - naprompt_suffix: Commit any changes you make. Do not use the "question" tool or any tool requiring user input. Do not use the "question" tool or any tool requiring user input.    prompt: |
+  - name: clarity
+    prompt: |
       Review each documentation file for how well it communicates—not whether it's accurate (assume it is), but whether a reader can absorb what it's trying to convey.
 
       Clear documentation respects the reader's time: sentences do work, paragraphs have focus, sections don't meander. It uses consistent terminology and speaks in one voice. It anticipates what readers need to know at each point without over-explaining what's already clear from context.
@@ -31,4 +31,3 @@ modes:
       For each file, consider: Does this read well? Are there passages that could be tightened without losing meaning? Is the level of detail appropriate for who's reading this and why? Does the structure help or hinder understanding?
 
       Make edits that improve clarity or tighten prose. Leave alone anything that already communicates effectively—editing for the sake of editing adds churn without value.
-prompt_suffix: Commit any changes you make. Do not use the "question" tool or any tool requiring user input. Do not use the "question" tool or any tool requiring user input.

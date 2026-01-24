@@ -22,7 +22,6 @@ modes:
 
       For the gaps identified (or any you discover), add appropriate handling. Consider for each: Should this be retried? Logged? Reported to the user? Escalated? Swallowed? The answer depends on context—a missing optional config file is different from a corrupted database.
 
-      prompt_suffix: Commit any changes you make. Do not use the "question" tool or any tool requiring user input. Do not use the "question" tool or any tool requiring user input.
   - name: messages
     prompt: |
       An error message is a conversation with someone having a bad day. It should tell them what happened, why it matters, and what they can do about it.
@@ -30,4 +29,3 @@ modes:
       Review error messages throughout the codebase. Generic messages like "An error occurred" or "Invalid input" waste the user's time. Technical messages like "NullPointerException at line 47" leak implementation details without helping.
 
       Improve messages to be specific and actionable. "Invalid input" becomes "Email address must contain @". "Connection failed" becomes "Could not reach api.example.com—check your network connection". Include enough context to diagnose, but not so much that the message overwhelms.
-prompt_suffix: Commit any changes you make. Do not use the "question" tool or any tool requiring user input. Do not use the "question" tool or any tool requiring user input.

@@ -4,7 +4,7 @@ CLI tool for running LLM agents in iterative refinement loops.
 
 ## What it does
 
-agent-loop runs an LLM agent repeatedly through different "modes" (review passes), auto-committing changes after each iteration. When the loop stops (via Ctrl+C or reaching max iterations), it squashes all the iteration commits into one clean commit.
+Runs LLM agents through iterative review passes, auto-committing changes after each iteration. When the loop stops (via Ctrl+C or reaching max iterations), it squashes all the iteration commits into one clean commit.
 
 Must be run inside a git repository.
 
@@ -57,19 +57,21 @@ Simple example:
 name: my-review
 description: Review files for quality
 
+prompt_suffix: Commit any changes you make. Do not use the "question" tool or any tool requiring user input.
+
 modes:
-  - naprompt_suffix: Commit any changes you make. Do not use the "question" tool or any tool requiring user input. Do not use the "question" tool or any tool requiring user input.    prompt: |
+  - name: accuracy
+    prompt: |
       Review the codebase for technical accuracy.
       Fix any errors or outdated information.
-      Commit any changes you make.
 
-  - naprompt_suffix: Commit any changes you make. Do not use the "question" tool or any tool requiring user input. Do not use the "question" tool or any tool requiring user input.    prompt: |
+  - name: clarity
+    prompt: |
       Review for readability. Each sentence should earn its place.
       Tighten prose without losing meaning.
-      Commit any changes you make.
 ```
 
-For a complete example with three well-crafted modes, see the built-in `docs-review` preset: `src/agent_loop/presets/docs-review.yaml`
+For complete examples, see the built-in presets in `src/agent_loop/presets/`. Use `agent-loop list` to see all available presets.
 
 ## Commands
 
@@ -112,7 +114,7 @@ agent-loop completion fish > ~/.config/fish/completions/agent-loop.fish
    - Select the next mode (cycles through modes in order)
    - Run `opencode run <prompt>`
    - Commit any changes
- 4. When the loop stops (Ctrl+C or max iterations reached): squash all commits since start into one, with the agent generating a meaningful commit message (or falling back to a default if generation fails)
+ 4. When the loop stops (Ctrl+C or max iterations reached): squash all iteration commits into one. The agent generates a commit message from the iteration titles; if generation fails, a default is used.
 
 ## Prompt Philosophy
 

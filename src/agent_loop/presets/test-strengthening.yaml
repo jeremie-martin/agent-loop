@@ -12,7 +12,6 @@ modes:
 
       Use sub-agents to help map coverage if the codebase is large—spawn exploratory agents to examine different areas and report back what's untested.
 
-      prompt_suffix: Commit any changes you make. Do not use the "question" tool or any tool requiring user input. Do not use the "question" tool or any tool requiring user input.
   - name: edge-cases
     prompt: |
       The happy path is usually tested. Bugs live at the edges—empty inputs, boundary values, unexpected types, concurrent access, resource exhaustion.
@@ -21,10 +20,10 @@ modes:
 
       Add tests for the edge cases that matter. Not every theoretical edge needs a test—focus on edges that users might actually hit, or that would cause significant damage if mishandled.
 
-  - naprompt_suffix: Commit any changes you make. Do not use the "question" tool or any tool requiring user input. Do not use the "question" tool or any tool requiring user input.    prompt: |
+  - name: assertions
+    prompt: |
       A test that passes when it shouldn't is worse than no test—it provides false confidence.
 
       Review the test suite for assertion quality. Tests should verify behavior, not implementation. Assertions should be specific enough to catch regressions but stable enough to survive refactoring. A test that asserts too little might pass when the code is broken; one that asserts too much breaks when the code is fine.
 
       Strengthen weak assertions. Replace checks for "not null" with checks for the actual expected value. Replace length checks with content checks where appropriate. Ensure error cases verify the right error, not just that an error occurred.
-prompt_suffix: Commit any changes you make. Do not use the "question" tool or any tool requiring user input. Do not use the "question" tool or any tool requiring user input.

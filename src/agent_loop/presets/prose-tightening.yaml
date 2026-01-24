@@ -12,7 +12,6 @@ modes:
 
       Look for: statements that were true once but have drifted, promises that aren't kept, examples that don't actually work, numbers that are stale or wrong.
 
-      prompt_suffix: Commit any changes you make. Do not use the "question" tool or any tool requiring user input. Do not use the "question" tool or any tool requiring user input.
   - name: structure
     prompt: |
       Structure is a gift to the reader. It tells them where to look, what to expect, and when they're done.
@@ -23,10 +22,10 @@ modes:
 
       Reshape structure where it helps readers navigate. But don't restructure for its own sake—if readers can already find their way, leave it alone.
 
-  - naprompt_suffix: Commit any changes you make. Do not use the "question" tool or any tool requiring user input. Do not use the "question" tool or any tool requiring user input.    prompt: |
+  - name: cision
+    prompt: |
       Concise prose respects the reader's time. Every sentence should earn its place; every word should pull its weight.
 
       Review for bloat: filler words ("very", "really", "quite"), redundant phrases ("in order to" → "to"), unnecessary hedging, throat-clearing introductions, repetition dressed as emphasis.
 
       Tighten without losing meaning or voice. A 50-word paragraph that becomes 30 words isn't just shorter—it's clearer, because there's less to parse. But don't compress to the point of obscurity; readability matters more than brevity.
-prompt_suffix: Commit any changes you make. Do not use the "question" tool or any tool requiring user input. Do not use the "question" tool or any tool requiring user input.

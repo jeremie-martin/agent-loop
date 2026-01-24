@@ -12,7 +12,6 @@ modes:
 
       Spawn a sub-agent to research the changelog and migration path for any significantly outdated dependency before deciding on updates.
 
-      prompt_suffix: Commit any changes you make. Do not use the "question" tool or any tool requiring user input. Do not use the "question" tool or any tool requiring user input.
   - name: unused
     prompt: |
       Every dependency is a liability: maintenance burden, security surface, build time, supply chain risk. Dependencies should earn their place.
@@ -23,10 +22,10 @@ modes:
 
       Remove dependencies that aren't pulling their weight. But verify first—some dependencies provide runtime functionality without explicit imports, or are peer dependencies required by others.
 
-  - naprompt_suffix: Commit any changes you make. Do not use the "question" tool or any tool requiring user input. Do not use the "question" tool or any tool requiring user input.    prompt: |
+  - name: pinned
+    prompt: |
       Reproducibility requires knowing exactly what you're running. Floating versions mean different builds on different days—and debugging "it works on my machine" forever.
 
       Review version specifications in dependency manifests. Are versions pinned precisely, or do they float? Are lock files present and committed? Do production and development dependencies have appropriate pinning strategies?
 
       Tighten version specs where builds should be reproducible. Ensure lock files exist and are committed. But allow appropriate flexibility for libraries (which shouldn't over-constrain their consumers).
-prompt_suffix: Commit any changes you make. Do not use the "question" tool or any tool requiring user input. Do not use the "question" tool or any tool requiring user input.
