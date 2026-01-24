@@ -7,7 +7,7 @@ from typing import Any
 
 import yaml
 
-BUILTIN_PRESETS_DIR = Path(__file__).parent.parent.parent / "presets"
+BUILTIN_PRESETS_DIR = Path(__file__).parent / "presets"
 
 
 @dataclass

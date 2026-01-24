@@ -6,6 +6,8 @@ CLI tool for running LLM agents in iterative refinement loops.
 
 agent-loop runs an LLM agent repeatedly through different "modes" (review passes), auto-committing changes after each iteration. When you stop the loop (Ctrl+C), it squashes all the iteration commits into one clean commit.
 
+Requires a git repository (the tool must be run inside a git repository).
+
 This is useful for iterative document review, code refactoring, or any task where you want an agent to make incremental improvements through multiple focused passes.
 
 ## Installation
@@ -81,11 +83,14 @@ settings:
 | `agent-loop init <name>` | Create a new preset template |
 | `agent-loop squash --since <hash>` | Manually squash commits |
 
+The `squash` command also supports `-m, --message` to specify a custom commit message.
+
 ### Run options
 
 - `--dry-run`: Show what would happen without executing
 - `-v, --verbose`: Enable verbose output
 - `--no-squash`: Don't squash commits when stopping
+- `-n, --max-iterations`: Maximum number of iterations to run
 
 ## How it works
 
