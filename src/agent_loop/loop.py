@@ -3,10 +3,9 @@
 import signal
 import sys
 from datetime import datetime
-from pathlib import Path
 
 from .git import commit_changes, generate_squash_message_with_agent, get_current_commit, get_repo, has_changes, squash_commits
-from .preset import Preset, resolve_files
+from .preset import Preset
 from .runner import run_opencode
 
 
@@ -40,11 +39,6 @@ class LoopRunner:
         if self.verbose:
             self._log(message)
 
-    def _format_prompt(self, mode_prompt: str, files: list[Path]) -> str:
-        """Format the prompt with file placeholders."""
-        file_list = "\n".join(f"- {f}" for f in files)
-        return mode_prompt.format(files=file_list)
-
     def _run_iteration(self) -> bool:
         """Run a single iteration of the loop.
 
@@ -58,21 +52,9 @@ class LoopRunner:
         self._log(f"Iteration {self.iteration + 1} [{mode.name}]")
         print("=" * 60)
 
-        # Resolve files
-        files = resolve_files(self.preset.files)
-        if not files:
-            self._log("No files matched the pattern")
-            if self.preset.files.pattern != "**/*":
-                self._log(f"Pattern: {self.preset.files.pattern}")
-
-        # Format prompt
-        prompt = self._format_prompt(mode.prompt, files)
-        self._verbose(f"Files: {len(files)} matched")
-
         # Run the agent
         success = run_opencode(
-            prompt=prompt,
-            model=self.preset.settings.model,
+            prompt=mode.prompt,
             dry_run=self.dry_run,
             verbose=self.verbose,
         )
@@ -84,10 +66,7 @@ class LoopRunner:
         if not self.dry_run:
             repo = get_repo()
             if has_changes(repo):
-                msg = self.preset.settings.commit_message_template.format(
-                    mode=mode.name,
-                    n=self.iteration + 1,
-                )
+                msg = f"[{mode.name}] iteration {self.iteration + 1}"
                 commit_changes(repo, msg)
                 self._log(f"Committed: {msg}")
             else:
@@ -112,8 +91,6 @@ class LoopRunner:
         print(f"Starting agent loop: {self.preset.name}")
         print(f"Description: {self.preset.description}")
         print(f"Modes: {', '.join(m.name for m in self.preset.modes)}")
-        if self.preset.settings.model:
-            print(f"Model: {self.preset.settings.model}")
         if self.max_iterations:
             print(f"Max iterations: {self.max_iterations}")
         if self.dry_run:
@@ -158,7 +135,7 @@ class LoopRunner:
         self._log("Generating commit message...")
 
         # Use agent to generate a meaningful squash message
-        message = generate_squash_message_with_agent(repo, self.start_commit, model=self.preset.settings.model)
+        message = generate_squash_message_with_agent(repo, self.start_commit)
 
         if not message:
             # Fallback if agent fails

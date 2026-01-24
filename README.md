@@ -42,10 +42,7 @@ agent-loop init my-preset
 
 ## Presets
 
-Presets are YAML files that define:
-- **files**: Which files to target (glob patterns)
-- **modes**: Review passes that cycle in order
-- **settings**: Model, commit message template, etc.
+Presets are YAML files that define modes—review passes that cycle in order. The agent autonomously decides which files to examine and modify.
 
 Example preset:
 
@@ -53,26 +50,18 @@ Example preset:
 name: my-review
 description: Review files for quality
 
-files:
-  pattern: "**/*.md"
-  exclude: ["node_modules/**"]
-
 modes:
   - name: accuracy
     prompt: |
-      Review these files for technical accuracy.
-      Files:
-      {files}
+      Review the codebase for technical accuracy.
+      Fix any errors or outdated information.
+      Commit any changes you make.
 
   - name: clarity
     prompt: |
       Review for readability. Each sentence should earn its place.
-      Files:
-      {files}
-
-settings:
-  model: "your-model-here"  # Optional; uses opencode's default if omitted
-  commit_message_template: "[{mode}] iteration {n}"
+      Tighten prose without losing meaning.
+      Commit any changes you make.
 ```
 
 ## Commands
@@ -100,8 +89,6 @@ The `squash` command also supports `-m, --message` to specify a custom commit me
 2. Record the current git commit
 3. Loop:
    - Select the next mode (cycles through modes in order)
-   - Resolve the file list from glob patterns
-   - Format the prompt with `{files}` placeholder
    - Run `opencode run <prompt>`
    - Commit any changes
 4. On Ctrl+C: squash all commits since start into one

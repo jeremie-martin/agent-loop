@@ -6,6 +6,8 @@ from pathlib import Path
 from git import Repo
 from git.exc import InvalidGitRepositoryError
 
+from .runner import DEFAULT_MODEL
+
 
 def get_repo(path: Path | None = None) -> Repo:
     """Get the git repository at the given path."""
@@ -80,7 +82,7 @@ def squash_commits(repo: Repo, since_commit: str, message: str | None = None) ->
     return True
 
 
-def generate_squash_message_with_agent(repo: Repo, since_commit: str, model: str | None = None) -> str | None:
+def generate_squash_message_with_agent(repo: Repo, since_commit: str) -> str | None:
     """Use an agent to generate a meaningful squash commit message.
 
     Returns the generated message, or None if generation failed.
@@ -112,9 +114,7 @@ Files changed:
 Output ONLY the commit message—no preamble, no explanation. First line under 72 chars, then blank line, then brief body if needed.
 """
 
-    cmd = ["opencode", "run", prompt]
-    if model:
-        cmd.extend(["-m", model])
+    cmd = ["opencode", "run", prompt, "-m", DEFAULT_MODEL]
 
     try:
         result = subprocess.run(cmd, capture_output=True, text=True, check=True)

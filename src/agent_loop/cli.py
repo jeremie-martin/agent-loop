@@ -110,33 +110,18 @@ def init(name: str) -> None:
     template = f"""name: {name}
 description: Add your description here
 
-# File targeting (optional)
-files:
-  pattern: "**/*.md"
-  exclude:
-    - "node_modules/**"
-    - ".git/**"
-
-# Modes cycle through in order
 modes:
   - name: review
     prompt: |
-      Review these files for quality and accuracy.
-
-      Files:
-      {{files}}
+      Review the codebase for quality and accuracy.
+      Make improvements where needed.
+      Commit any changes you make.
 
   - name: refine
     prompt: |
-      Refine these files based on the previous review.
-
-      Files:
-      {{files}}
-
-# Optional settings
-settings:
-  # model: "your-model-here"
-  commit_message_template: "[{{mode}}] iteration {{n}}"
+      Refine the codebase based on the previous review.
+      Focus on clarity and consistency.
+      Commit any changes you make.
 """
 
     path.write_text(template)

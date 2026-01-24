@@ -1,7 +1,6 @@
 """Preset loading and validation."""
 
-import subprocess
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
@@ -19,30 +18,12 @@ class Mode:
 
 
 @dataclass
-class FileConfig:
-    """File targeting configuration."""
-
-    pattern: str = "**/*"
-    exclude: list[str] = field(default_factory=list)
-
-
-@dataclass
-class Settings:
-    """Optional preset settings."""
-
-    model: str | None = None
-    commit_message_template: str = "[{mode}] iteration {n}"
-
-
-@dataclass
 class Preset:
     """A loaded preset configuration."""
 
     name: str
     description: str
     modes: list[Mode]
-    files: FileConfig = field(default_factory=FileConfig)
-    settings: Settings = field(default_factory=Settings)
     path: Path | None = None
 
 
@@ -54,26 +35,6 @@ def _parse_modes(data: list[dict[str, Any]]) -> list[Mode]:
             raise ValueError("Each mode must have 'name' and 'prompt' fields")
         modes.append(Mode(name=m["name"], prompt=m["prompt"]))
     return modes
-
-
-def _parse_file_config(data: dict[str, Any] | None) -> FileConfig:
-    """Parse file configuration from YAML data."""
-    if data is None:
-        return FileConfig()
-    return FileConfig(
-        pattern=data.get("pattern", "**/*"),
-        exclude=data.get("exclude", []),
-    )
-
-
-def _parse_settings(data: dict[str, Any] | None) -> Settings:
-    """Parse settings from YAML data."""
-    if data is None:
-        return Settings()
-    return Settings(
-        model=data.get("model"),
-        commit_message_template=data.get("commit_message_template", "[{mode}] iteration {n}"),
-    )
 
 
 def load_preset(path: Path) -> Preset:
@@ -96,8 +57,6 @@ def load_preset(path: Path) -> Preset:
         name=data["name"],
         description=data.get("description", ""),
         modes=_parse_modes(data["modes"]),
-        files=_parse_file_config(data.get("files")),
-        settings=_parse_settings(data.get("settings")),
         path=path,
     )
 
@@ -124,45 +83,3 @@ def list_presets() -> list[tuple[str, str]]:
             except Exception:
                 presets.append((path.stem, "(invalid preset)"))
     return presets
-
-
-def _get_gitignored_files(files: list[Path], base_dir: Path) -> set[Path]:
-    """Get the subset of files that are gitignored."""
-    if not files:
-        return set()
-
-    try:
-        # Use git check-ignore to filter out ignored files
-        result = subprocess.run(
-            ["git", "check-ignore", "--stdin"],
-            input="\n".join(str(f) for f in files),
-            capture_output=True,
-            text=True,
-            cwd=base_dir,
-        )
-        # git check-ignore returns ignored files, one per line
-        ignored_paths = result.stdout.strip().split("\n") if result.stdout.strip() else []
-        return {Path(p) for p in ignored_paths}
-    except Exception:
-        # If git is not available or fails, don't filter
-        return set()
-
-
-def resolve_files(file_config: FileConfig, base_dir: Path | None = None) -> list[Path]:
-    """Resolve file patterns to actual file paths, respecting gitignore."""
-    base = base_dir or Path.cwd()
-    files = list(base.glob(file_config.pattern))
-
-    # Apply explicit exclusions
-    excluded = set()
-    for exclude_pattern in file_config.exclude:
-        excluded.update(base.glob(exclude_pattern))
-
-    # Filter to actual files and apply exclusions
-    files = [f for f in files if f not in excluded and f.is_file()]
-
-    # Filter out gitignored files
-    gitignored = _get_gitignored_files(files, base)
-    files = [f for f in files if f not in gitignored]
-
-    return sorted(files)

@@ -1,13 +1,6 @@
 name: docs-review
 description: Review documentation for quality, accuracy, and coherence
 
-files:
-  pattern: "**/*.md"
-  exclude:
-    - "node_modules/**"
-    - ".git/**"
-    - "vendor/**"
-
 modes:
   - name: accuracy
     prompt: |
@@ -21,9 +14,6 @@ modes:
 
       Commit any changes you make.
 
-      Files:
-      {files}
-
   - name: structure
     prompt: |
       Consider the documentation as a whole—not the accuracy of individual files, but how they work together as a system readers navigate.
@@ -36,9 +26,6 @@ modes:
 
       Commit any changes you make.
 
-      Files:
-      {files}
-
   - name: clarity
     prompt: |
       Review each documentation file for how well it communicates—not whether it's accurate (assume it is), but whether a reader can absorb what it's trying to convey.
@@ -50,10 +37,3 @@ modes:
       Make edits that improve clarity or tighten prose. Leave alone anything that already communicates effectively—editing for the sake of editing adds churn without value.
 
       Commit any changes you make.
-
-      Files:
-      {files}
-
-settings:
-  model: "zai-coding-plan/glm-4.7"
-  commit_message_template: "[docs:{mode}] iteration {n}"
