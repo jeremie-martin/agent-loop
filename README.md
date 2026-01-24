@@ -6,7 +6,7 @@ CLI tool for running LLM agents in iterative refinement loops.
 
 agent-loop runs an LLM agent repeatedly through different "modes" (review passes), auto-committing changes after each iteration. When you stop the loop (Ctrl+C), it squashes all the iteration commits into one clean commit.
 
-Requires a git repository (the tool must be run inside a git repository).
+Must be run inside a git repository.
 
 This is useful for iterative document review, code refactoring, or any task where you want an agent to make incremental improvements through multiple focused passes.
 
@@ -50,26 +50,28 @@ Presets are YAML files that define:
 Example preset:
 
 ```yaml
-name: docs-review
-description: Review documentation for quality and accuracy
+name: my-review
+description: Review files for quality
 
 files:
   pattern: "**/*.md"
   exclude: ["node_modules/**"]
 
 modes:
-  - name: alignment
+  - name: accuracy
     prompt: |
-      Review these files for accuracy against the implementation.
-      Files: {files}
+      Review these files for technical accuracy.
+      Files:
+      {files}
 
   - name: clarity
     prompt: |
       Review for readability. Each sentence should earn its place.
-      Files: {files}
+      Files:
+      {files}
 
 settings:
-  model: "your-model-here"
+  model: "your-model-here"  # Optional; uses opencode's default if omitted
   commit_message_template: "[{mode}] iteration {n}"
 ```
 
@@ -113,7 +115,7 @@ Writing effective prompts for iterative agents:
 - **Use reader-centered language**: "Reads as a coherent whole" puts agents in editor mode
 - **One purpose per prompt**: Each mode should have a single, clear focus
 
-See [docs/prompt_philosophy.md](docs/prompt_philosophy.md) for the full guide.
+For additional principles and detailed guidance, see [docs/prompt_philosophy.md](docs/prompt_philosophy.md).
 
 ## License
 
