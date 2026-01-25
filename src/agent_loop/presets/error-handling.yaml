@@ -62,7 +62,8 @@ modes:
       2. **Tests** asserting on specific exceptions or messages
       3. **Documentation** describing error behavior
 
-      Launch sub-agents for each area. Give each:
+      Launch three sub-agents **in parallel**—these areas are independent and can be
+      updated simultaneously. Give each:
       - The specific changes (from git status/diff)
       - Instruction to update only code directly affected by those changes—no
         additional improvements

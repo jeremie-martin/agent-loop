@@ -62,7 +62,8 @@ modes:
       2. **Documentation**: Only docs that reference the changed endpoints
       3. **Tests**: Only tests that exercise the changed endpoints
 
-      Launch three sub-agents. Give each:
+      Launch three sub-agents **in parallel**—these areas are independent and can be
+      updated simultaneously. Give each:
       - The list of changed endpoints
       - What specifically changed about each
       - Instruction to update only what's directly affected—no broader improvements
