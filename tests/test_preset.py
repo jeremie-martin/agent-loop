@@ -3,6 +3,8 @@
 from pathlib import Path
 from textwrap import dedent
 
+import pytest
+
 from agent_loop.preset import Mode, Preset, ReviewConfig, find_preset, list_presets, load_preset
 
 
@@ -218,36 +220,21 @@ class TestReviewConfig:
 class TestOptionalFields:
     """Tests for optional fields that default to None and load from YAML."""
 
-    def test_model_defaults_to_none(self):
-        """Model defaults to None when not specified."""
-        preset = Preset(name="test", description="", modes=[])
-        assert preset.model is None
+    @pytest.mark.parametrize("field", ["model", "review__scope_globs"])
+    def test_optional_fields_default_to_none(self, field):
+        """Optional fields default to None when not specified."""
+        if field == "model":
+            preset = Preset(name="test", description="", modes=[])
+            assert preset.model is None
+        elif field == "review__scope_globs":
+            config = ReviewConfig()
+            assert config.scope_globs is None
 
-    def test_scope_globs_defaults_to_none(self):
-        """scope_globs defaults to None."""
-        config = ReviewConfig()
-        assert config.scope_globs is None
-
-    def test_model_loaded_from_yaml(self, tmp_path: Path):
-        """Model field loaded from YAML."""
+    def test_optional_fields_loaded_from_yaml(self, tmp_path: Path):
+        """Optional fields are loaded from YAML when present."""
         yaml_content = dedent("""
             name: test-preset
             model: custom-model-v1
-            modes:
-              - name: review
-                prompt: Review.
-        """)
-        preset_file = tmp_path / "test.yaml"
-        preset_file.write_text(yaml_content)
-
-        preset = load_preset(preset_file)
-
-        assert preset.model == "custom-model-v1"
-
-    def test_scope_globs_loaded_from_yaml(self, tmp_path: Path):
-        """scope_globs loaded from YAML."""
-        yaml_content = dedent("""
-            name: test-preset
             modes:
               - name: review
                 prompt: Review.
@@ -263,28 +250,14 @@ class TestOptionalFields:
 
         preset = load_preset(preset_file)
 
+        assert preset.model == "custom-model-v1"
         assert preset.review is not None
         assert preset.review.scope_globs == ["*.md", "docs/**"]
 
-    def test_model_optional_in_yaml(self, tmp_path: Path):
-        """Model is None when not specified in YAML."""
+    def test_optional_fields_none_when_omitted_from_yaml(self, tmp_path: Path):
+        """Optional fields are None when not in YAML."""
         yaml_content = dedent("""
             name: minimal
-            modes:
-              - name: review
-                prompt: Review.
-        """)
-        preset_file = tmp_path / "minimal.yaml"
-        preset_file.write_text(yaml_content)
-
-        preset = load_preset(preset_file)
-
-        assert preset.model is None
-
-    def test_scope_globs_optional(self, tmp_path: Path):
-        """scope_globs is None when not specified."""
-        yaml_content = dedent("""
-            name: test-preset
             modes:
               - name: review
                 prompt: Review.
@@ -292,11 +265,12 @@ class TestOptionalFields:
               enabled: true
               check_prompt: Check.
         """)
-        preset_file = tmp_path / "test.yaml"
+        preset_file = tmp_path / "minimal.yaml"
         preset_file.write_text(yaml_content)
 
         preset = load_preset(preset_file)
 
+        assert preset.model is None
         assert preset.review is not None
         assert preset.review.scope_globs is None
 
