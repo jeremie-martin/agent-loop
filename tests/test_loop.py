@@ -9,24 +9,6 @@ from agent_loop.preset import Mode, Preset
 class TestConsecutiveFailures:
     """Tests for consecutive failure threshold."""
 
-    def test_consecutive_failures_tracked(self):
-        """Failed iterations increment counter."""
-        preset = Preset(name="test", description="", modes=[Mode(name="review", prompt="Review.")])
-        runner = LoopRunner(preset, dry_run=True, max_consecutive_failures=3)
-
-        assert runner._consecutive_failures == 0
-
-        # Simulate failure by directly incrementing
-        runner._consecutive_failures = 1
-        assert runner._consecutive_failures == 1
-
-    def test_consecutive_failures_none_allows_unlimited(self):
-        """None threshold means unlimited failures allowed."""
-        preset = Preset(name="test", description="", modes=[Mode(name="review", prompt="Review.")])
-        runner = LoopRunner(preset, dry_run=True, max_consecutive_failures=None)
-
-        assert runner.max_consecutive_failures is None
-
     @patch("agent_loop.loop.run_opencode")
     def test_stops_after_max_consecutive_failures(self, mock_run):
         """Loop stops after reaching max consecutive failures."""
@@ -35,14 +17,14 @@ class TestConsecutiveFailures:
         preset = Preset(name="test", description="", modes=[Mode(name="review", prompt="Review.")])
         runner = LoopRunner(preset, dry_run=True, max_consecutive_failures=2)
 
-        # First failure
+        # First failure - should continue
         result = runner._run_iteration()
-        assert result is True  # Continue
+        assert result is True
         assert runner._consecutive_failures == 1
 
         # Second failure - should stop
         result = runner._run_iteration()
-        assert result is False  # Stop
+        assert result is False
         assert runner._consecutive_failures == 2
 
     @patch("agent_loop.loop.run_opencode")
@@ -60,6 +42,20 @@ class TestConsecutiveFailures:
         runner._run_iteration()
 
         assert runner._consecutive_failures == 0
+
+    @patch("agent_loop.loop.run_opencode")
+    def test_none_threshold_allows_unlimited_failures(self, mock_run):
+        """None threshold allows unlimited consecutive failures."""
+        mock_run.return_value = False  # Always fail
+
+        preset = Preset(name="test", description="", modes=[Mode(name="review", prompt="Review.")])
+        runner = LoopRunner(preset, dry_run=True, max_consecutive_failures=None)
+
+        # Many consecutive failures should still return True (continue)
+        for i in range(10):
+            result = runner._run_iteration()
+            assert result is True
+            assert runner._consecutive_failures == i + 1
 
 
 class TestModelPassthrough:

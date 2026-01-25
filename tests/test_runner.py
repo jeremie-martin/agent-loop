@@ -1,6 +1,7 @@
 """Tests for runner module."""
 
 from unittest.mock import patch
+import pytest
 
 from agent_loop.runner import DEFAULT_MODEL, run_opencode
 
@@ -8,14 +9,10 @@ from agent_loop.runner import DEFAULT_MODEL, run_opencode
 class TestRunOpencode:
     """Tests for run_opencode()."""
 
-    def test_dry_run_returns_true(self):
-        """Dry run returns True without executing."""
-        result = run_opencode("test prompt", dry_run=True)
-        assert result is True
-
-    def test_dry_run_with_model(self):
-        """Dry run works with custom model."""
-        result = run_opencode("test prompt", dry_run=True, model="custom-model")
+    @pytest.mark.parametrize("model", [None, "custom-model"])
+    def test_dry_run_returns_true_without_executing(self, model):
+        """Dry run returns True without executing subprocess."""
+        result = run_opencode("test prompt", dry_run=True, model=model)
         assert result is True
 
     @patch("agent_loop.runner.subprocess.run")
@@ -41,20 +38,12 @@ class TestRunOpencode:
         model_idx = call_args.index("-m")
         assert call_args[model_idx + 1] == "custom-model-v2"
 
+    @pytest.mark.parametrize("returncode,expected", [(0, True), (1, False)])
     @patch("agent_loop.runner.subprocess.run")
-    def test_returns_true_on_success(self, mock_subprocess):
-        """Returns True when command succeeds."""
-        mock_subprocess.return_value.returncode = 0
+    def test_returns_bool_based_on_subprocess_result(self, mock_subprocess, returncode, expected):
+        """Returns True on success, False on failure."""
+        mock_subprocess.return_value.returncode = returncode
 
         result = run_opencode("test prompt", dry_run=False)
 
-        assert result is True
-
-    @patch("agent_loop.runner.subprocess.run")
-    def test_returns_false_on_failure(self, mock_subprocess):
-        """Returns False when command fails."""
-        mock_subprocess.return_value.returncode = 1
-
-        result = run_opencode("test prompt", dry_run=False)
-
-        assert result is False
+        assert result is expected

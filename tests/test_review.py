@@ -149,7 +149,7 @@ class TestBuildReviewPromptIntegration:
     """Integration tests using realistic config values."""
 
     def test_docs_review_style_prompt(self):
-        """Prompt built with docs-review style config is well-formed."""
+        """Prompt built with docs-review style config preserves all sections and custom content."""
         preset = Preset(
             name="docs-review",
             description="Review documentation for quality, accuracy, and coherence",
@@ -161,23 +161,33 @@ class TestBuildReviewPromptIntegration:
         )
         config = ReviewConfig(
             check_prompt="""For each modified doc file, verify:
-1. All factual claims are supported by current source code
-2. No content was removed that was actually accurate
-3. Terminology matches what the code uses""",
+ 1. All factual claims are supported by current source code
+ 2. No content was removed that was actually accurate
+ 3. Terminology matches what the code uses""",
             filter_prompt="""Filter out:
-- Stylistic preferences that don't affect accuracy
-- Suggestions to add content beyond current scope""",
+ - Stylistic preferences that don't affect accuracy
+ - Suggestions to add content beyond current scope""",
         )
 
         result = build_review_prompt(preset, config)
 
-        # Verify structure
-        assert "Task:" in result
+        # Verify task description included
+        assert "Task: Review documentation for quality, accuracy, and coherence" in result
+
+        # Verify all expected sections present
         assert "**Review scope:**" in result
         assert "**Before acting, filter your feedback:**" in result
         assert "**Fix:**" in result
         assert "**Commit:**" in result
 
-        # Verify content preserved
-        assert "factual claims" in result
-        assert "Stylistic preferences" in result
+        # Verify custom check_prompt content preserved
+        assert "All factual claims are supported by current source code" in result
+        assert "Terminology matches what the code uses" in result
+
+        # Verify custom filter_prompt content preserved
+        assert "Stylistic preferences that don't affect accuracy" in result
+        assert "Suggestions to add content beyond current scope" in result
+
+        # Verify git instructions present
+        assert "git status" in result
+        assert "git diff" in result
