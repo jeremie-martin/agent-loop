@@ -48,6 +48,22 @@ modes:
 
       Standardize validation patterns. Same rules for same field types. Same error shapes for validation failures. Update schemas to document constraints.
 
+  - name: propagation
+    prompt: |
+      API changes must propagate throughout the codebase. When the API changes, callers, documentation, and tests need to reflect those changes.
+
+      Check git diff to see what API changes were made. For each change, three areas need updating:
+
+      1. **Internal callers**: Code that calls the changed endpoints needs to use the new patterns. Update request shapes, handle new response formats, adapt to validation changes.
+
+      2. **Documentation**: API references, examples, and parameter descriptions need to match reality. README files, API docs, inline comments that mention endpoints.
+
+      3. **Tests**: Test expectations need to match the new behavior. Mock responses, test data, assertion values.
+
+      Work through each area. These three concerns are independent—parallelize across them when the codebase is large.
+
+      After all updates, run the full test suite. Breaking changes are acceptable when the entire codebase adapts accordingly. The measure of success is passing tests.
+
 review:
   enabled: true
   scope_globs:

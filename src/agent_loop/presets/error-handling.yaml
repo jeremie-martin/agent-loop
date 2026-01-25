@@ -45,6 +45,22 @@ modes:
 
       Avoid exposing internal implementation details in user-facing messages.
 
+  - name: sync
+    prompt: |
+      Error handling changes affect code that catches or tests for specific exceptions.
+
+      Check git diff to see what error handling changed. Look for:
+      - Changed exception types (ValueError → CustomError)
+      - Changed exception messages that tests assert on
+      - Changed patterns (return None → raise, or vice versa)
+
+      For each change, update affected code:
+      - Catch blocks expecting the old exception type
+      - Tests asserting on specific exceptions or messages
+      - Documentation describing error behavior
+
+      Run tests after updates. Failing tests indicate missed sync points.
+
 review:
   enabled: true
   scope_globs:
