@@ -8,30 +8,29 @@ from agent_loop.review import build_review_prompt
 class TestBuildReviewPrompt:
     """Tests for build_review_prompt()."""
 
-    def test_includes_task_description(self):
-        """Prompt includes preset description as task context."""
+    @pytest.mark.parametrize(
+        "preset_desc,config_check,config_filter,expected_content",
+        [
+            ("Review documentation for accuracy", "Check things.", "Filter things.", "Task: Review documentation for accuracy"),
+            ("Test", "Verify all claims.", "Filter out noise.", "**Review scope:**"),
+        ],
+    )
+    def test_includes_task_description_and_prompts(self, preset_desc, config_check, config_filter, expected_content):
+        """Prompt includes preset description, check, and filter instructions."""
         preset = Preset(
             name="test",
-            description="Review documentation for accuracy",
+            description=preset_desc,
             modes=[Mode(name="review", prompt="Review.")],
         )
-        config = ReviewConfig(check_prompt="Check things.", filter_prompt="Filter things.")
+        config = ReviewConfig(check_prompt=config_check, filter_prompt=config_filter)
 
         result = build_review_prompt(preset, config)
 
-        assert "Task: Review documentation for accuracy" in result
-
-    def test_includes_check_and_filter_prompts(self):
-        """Prompt includes check and filter instructions."""
-        preset = Preset(name="test", description="Test", modes=[])
-        config = ReviewConfig(check_prompt="Verify all claims.", filter_prompt="Filter out noise.")
-
-        result = build_review_prompt(preset, config)
-
-        assert "**Review scope:**" in result
-        assert "Verify all claims." in result
-        assert "**Before acting, filter your feedback:**" in result
-        assert "Filter out noise." in result
+        assert expected_content in result
+        if config_check:
+            assert config_check in result
+        if config_filter:
+            assert config_filter in result
 
     def test_includes_commit_and_scope_instructions(self):
         """Prompt includes commit instructions and guidance to ignore unrelated files."""
@@ -46,23 +45,27 @@ class TestBuildReviewPrompt:
         assert "unrelated" in result.lower()
         assert "ignore" in result.lower()
 
-    def test_fix_prompt_variations(self):
+    @pytest.mark.parametrize(
+        "fix_prompt,expected_in_result,expected_not_in_result",
+        [
+            ("Custom fix: do this specific thing.", "Custom fix: do this specific thing.", None),
+            (None, "actionable issues", None),
+        ],
+    )
+    def test_fix_prompt_variations(self, fix_prompt, expected_in_result, expected_not_in_result):
         """Custom fix_prompt replaces default fix instructions."""
         preset = Preset(name="test", description="Test", modes=[])
 
-        # Test custom fix_prompt
         config = ReviewConfig(
             check_prompt="Check.",
             filter_prompt="Filter.",
-            fix_prompt="Custom fix: do this specific thing.",
+            fix_prompt=fix_prompt,
         )
         result = build_review_prompt(preset, config)
-        assert "Custom fix: do this specific thing." in result
 
-        # Test default fix_prompt
-        config = ReviewConfig(check_prompt="Check.", filter_prompt="Filter.")
-        result = build_review_prompt(preset, config)
-        assert "actionable issues" in result.lower()
+        assert expected_in_result.lower() in result.lower()
+        if expected_not_in_result:
+            assert expected_not_in_result.lower() not in result.lower()
 
     @pytest.mark.parametrize(
         "check_prompt,filter_prompt,has_check_section,has_filter_section",
@@ -80,32 +83,28 @@ class TestBuildReviewPrompt:
         assert ("**Review scope:**" in result) == has_check_section
         assert ("**Before acting, filter your feedback:**" in result) == has_filter_section
 
-    def test_scope_globs_included_in_prompt(self):
-        """scope_globs interpolated into prompt when provided."""
+    @pytest.mark.parametrize(
+        "scope_globs,expected_in_prompt,expected_globs",
+        [
+            (["*.md", "docs/**"], True, ["`*.md`", "`docs/**`"]),
+            (None, False, []),
+            ([], False, []),
+        ],
+    )
+    def test_scope_globs_handling(self, scope_globs, expected_in_prompt, expected_globs):
+        """scope_globs included in prompt when provided, omitted when empty or None."""
         preset = Preset(name="test", description="Test", modes=[])
         config = ReviewConfig(
             check_prompt="Check.",
             filter_prompt="Filter.",
-            scope_globs=["*.md", "docs/**"],
+            scope_globs=scope_globs,
         )
 
         result = build_review_prompt(preset, config)
 
-        assert "**Files in scope:**" in result
-        assert "`*.md`" in result
-        assert "`docs/**`" in result
-
-    def test_scope_globs_omitted_when_empty_or_none(self):
-        """No scope section when scope_globs is None or empty list."""
-        preset = Preset(name="test", description="Test", modes=[])
-        config = ReviewConfig(check_prompt="Check.", filter_prompt="Filter.")
-
-        result = build_review_prompt(preset, config)
-        assert "**Files in scope:**" not in result
-
-        config = ReviewConfig(check_prompt="Check.", filter_prompt="Filter.", scope_globs=[])
-        result = build_review_prompt(preset, config)
-        assert "**Files in scope:**" not in result
+        assert ("**Files in scope:**" in result) == expected_in_prompt
+        for expected_glob in expected_globs:
+            assert expected_glob in result
 
 
 class TestBuildReviewPromptIntegration:

@@ -141,35 +141,28 @@ class TestConsecutiveFailures:
 class TestModelPassthrough:
     """Tests for model being passed to run_opencode."""
 
+    @pytest.mark.parametrize(
+        "model,expected",
+        [
+            ("custom-model-v1", "custom-model-v1"),
+            (None, None),
+        ],
+    )
     @patch("agent_loop.loop.run_opencode")
-    def test_model_passed_to_run_opencode(self, mock_run):
-        """Preset model is passed to run_opencode."""
+    def test_model_passed_to_run_opencode(self, mock_run, model, expected):
+        """Preset model (or None) is passed to run_opencode."""
         mock_run.return_value = True
 
         preset = Preset(
             name="test",
             description="",
             modes=[Mode(name="review", prompt="Review.")],
-            model="custom-model-v1",
+            model=model,
         )
         runner = LoopRunner(preset, dry_run=True)
 
         runner._run_iteration()
 
         # Verify model was passed
-        mock_run.assert_called_once()
         call_kwargs = mock_run.call_args[1]
-        assert call_kwargs["model"] == "custom-model-v1"
-
-    @patch("agent_loop.loop.run_opencode")
-    def test_none_model_passed_when_not_specified(self, mock_run):
-        """None model passed when preset doesn't specify one."""
-        mock_run.return_value = True
-
-        preset = Preset(name="test", description="", modes=[Mode(name="review", prompt="Review.")])
-        runner = LoopRunner(preset, dry_run=True)
-
-        runner._run_iteration()
-
-        call_kwargs = mock_run.call_args[1]
-        assert call_kwargs["model"] is None
+        assert call_kwargs["model"] == expected
