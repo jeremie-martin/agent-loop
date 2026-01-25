@@ -37,3 +37,24 @@ class TestRunOpencode:
         result = run_opencode("test prompt", dry_run=False)
 
         assert result is expected
+
+
+class TestRunOpencodeExceptions:
+    """Tests for exception handling in run_opencode()."""
+
+    @patch("agent_loop.runner.subprocess.run")
+    def test_file_not_found_returns_false(self, mock_subprocess):
+        """Returns False when opencode command not found."""
+        mock_subprocess.side_effect = FileNotFoundError("opencode not found")
+
+        result = run_opencode("test prompt", dry_run=False)
+
+        assert result is False
+
+    @patch("agent_loop.runner.subprocess.run")
+    def test_keyboard_interrupt_propagates(self, mock_subprocess):
+        """KeyboardInterrupt is propagated, not caught and converted to False."""
+        mock_subprocess.side_effect = KeyboardInterrupt()
+
+        with pytest.raises(KeyboardInterrupt):
+            run_opencode("test prompt", dry_run=False)

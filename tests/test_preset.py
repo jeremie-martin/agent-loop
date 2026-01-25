@@ -199,16 +199,8 @@ class TestReviewConfig:
 class TestOptionalFields:
     """Tests for optional fields that default to None and load from YAML."""
 
-    def test_optional_fields_defaults_to_none(self):
-        """Optional fields (model, scope_globs) default to None when not specified."""
-        preset = Preset(name="test", description="", modes=[])
-        assert preset.model is None
-
-        config = ReviewConfig()
-        assert config.scope_globs is None
-
-    def test_optional_fields_from_yaml(self, tmp_path: Path):
-        """Optional fields are loaded from YAML when present, None when omitted."""
+    def test_optional_fields_loaded_from_yaml(self, tmp_path: Path):
+        """Optional fields are loaded from YAML when present."""
         yaml_content = dedent("""
             name: test-preset
             model: custom-model-v1
@@ -231,7 +223,9 @@ class TestOptionalFields:
         assert preset.review is not None
         assert preset.review.scope_globs == ["*.md", "docs/**"]
 
-        yaml_content_minimal = dedent("""
+    def test_optional_fields_default_to_none_when_omitted(self, tmp_path: Path):
+        """Optional fields default to None when omitted from YAML."""
+        yaml_content = dedent("""
             name: minimal
             modes:
               - name: review
@@ -240,14 +234,14 @@ class TestOptionalFields:
               enabled: true
               check_prompt: Check.
         """)
-        preset_file_minimal = tmp_path / "minimal.yaml"
-        preset_file_minimal.write_text(yaml_content_minimal)
+        preset_file = tmp_path / "minimal.yaml"
+        preset_file.write_text(yaml_content)
 
-        preset_minimal = load_preset(preset_file_minimal)
+        preset = load_preset(preset_file)
 
-        assert preset_minimal.model is None
-        assert preset_minimal.review is not None
-        assert preset_minimal.review.scope_globs is None
+        assert preset.model is None
+        assert preset.review is not None
+        assert preset.review.scope_globs is None
 
 
 class TestBuiltinPresets:
