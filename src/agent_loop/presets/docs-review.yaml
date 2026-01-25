@@ -7,7 +7,7 @@ prompt_prefix: |
   you add or modify.
 
 prompt_suffix: |
-  Commit any changes you make with a clear message summarizing what was done.
+  Do not commit changes - they will be reviewed and committed at the end of the cycle.
   Do not use the "question" tool or any tool requiring user input.
 
 modes:

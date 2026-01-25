@@ -68,7 +68,7 @@ name: my-review
 description: Review files for quality
 
 prompt_suffix: |
-  Commit any changes you make.
+  Do not commit changes - they will be reviewed and committed at the end of the cycle.
   Do not use the "question" tool or any tool requiring user input.
 
 modes:
@@ -82,7 +82,7 @@ modes:
       Review for readability. Each sentence should earn its place.
       Tighten prose without losing meaning.
 
-# Optional: run a review agent after each complete cycle
+# Run a review agent after each complete cycle (commits the accumulated changes)
 review:
   enabled: true
   check_prompt: |
@@ -90,6 +90,8 @@ review:
   filter_prompt: |
     Filter out stylistic opinions. Only act on real issues.
 ```
+
+For presets without a `review` block, use `prompt_suffix: Commit any changes you make.` so each iteration commits.
 
 Built-in presets include accessibility, api-docs, code-refactor, dead-code, dependency-audit, docs-review, error-handling, frontend-style, migration, prose-tightening, security-review, test-strengthening, and type-tightening. Use `agent-loop list` to see them all.
 
@@ -146,9 +148,20 @@ agent-loop completion fish > ~/.config/fish/completions/agent-loop.fish
 2. Record the current git commit
 3. Loop through modes:
    - Select the next mode (cycles through modes in order)
-   - Run `opencode run <prompt>` (agent commits its own changes)
+   - Run `opencode run <prompt>`
    - After completing all modes in a cycle: run optional review agent
 4. When the loop stops (Ctrl+C or max iterations reached): squash all commits into one clean commit with an LLM-generated message
+
+### Commit strategies
+
+**With review block** (recommended for multi-mode presets):
+- Iterations accumulate changes without committing
+- Review agent validates all changes, then commits
+- Result: one commit per cycle with a meaningful message
+
+**Without review block** (simple presets):
+- Each iteration commits its own changes via prompt_suffix
+- Result: multiple commits, squashed at the end
 
 ### Review cycles
 
@@ -157,7 +170,7 @@ Presets can include a `review` block that runs a validation agent after each com
 - Broken CSS token references
 - Inconsistent replacements
 
-The review agent receives a composed prompt with check instructions, filter instructions (to avoid false positives), and commit instructions. See [docs/prompt_philosophy.md](docs/prompt_philosophy.md) for design principles.
+The review agent sees all uncommitted changes from the cycle, validates them against the check/filter prompts, fixes issues, and creates a single commit. See [docs/prompt_philosophy.md](docs/prompt_philosophy.md) for design principles.
 
 ## Prompt Philosophy
 

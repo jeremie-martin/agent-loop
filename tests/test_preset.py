@@ -232,7 +232,8 @@ class TestBuiltinPresets:
         preset = load_preset(path)
 
         assert preset.prompt_suffix is not None
-        assert "Commit" in preset.prompt_suffix
+        # Iterations don't commit - review does
+        assert "Do not commit" in preset.prompt_suffix
 
     def test_docs_review_has_review_config(self):
         """docs-review preset has review configuration."""

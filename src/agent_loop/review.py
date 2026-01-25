@@ -21,7 +21,8 @@ def build_review_prompt(preset: Preset, config: ReviewConfig) -> str:
     # Task context
     parts.append(f"Task: {preset.description}")
     parts.append("")
-    parts.append("There are uncommitted changes. Review and finalize them.")
+    parts.append("A cycle of work has been completed. Review the uncommitted changes and finalize them.")
+    parts.append("Use `git diff` to see what was changed.")
     parts.append("")
 
     # Review instructions
