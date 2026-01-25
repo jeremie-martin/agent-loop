@@ -78,7 +78,7 @@ def list_cmd() -> None:
 
 
 @main.command()
-@click.option("--since", required=True, help="Commit hash to squash from (exclusive)")
+@click.option("--since", required=True, help="Base commit (exclusive) — commits after this are squashed")
 @click.option("--message", "-m", help="Custom commit message (skips agent generation)")
 @click.option("--no-agent", is_flag=True, help="Don't use agent to generate commit message")
 def squash(since: str, message: str | None, no_agent: bool) -> None:

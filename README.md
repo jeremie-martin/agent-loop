@@ -91,7 +91,7 @@ Built-in presets include accessibility, api-docs, code-refactor, dead-code, depe
 | `agent-loop run -c, --config <file>` | Run with a custom preset file |
 | `agent-loop list` | List available built-in presets |
 | `agent-loop init <name>` | Create a new preset template |
-| `agent-loop squash --since <hash>` | Squash commits since a given hash (uses LLM to generate commit message) |
+| `agent-loop squash --since <hash>` | Squash commits after the given hash into one (uses LLM to generate message) |
 | `agent-loop completion <shell>` | Generate shell completion script (bash/zsh/fish) |
 
 ### Run options
@@ -103,6 +103,7 @@ Built-in presets include accessibility, api-docs, code-refactor, dead-code, depe
 
 ### Squash options
 
+- `--since`: Base commit (exclusive) — all commits after this one are squashed
 - `-m, --message`: Custom commit message (skips LLM generation)
 - `--no-agent`: Use simple bullet-list fallback instead of LLM
 
