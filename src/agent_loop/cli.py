@@ -40,8 +40,6 @@ def run(preset_name: str | None, config: Path | None, dry_run: bool, verbose: in
     Press Ctrl+C to stop the loop. By default, all commits made during the loop
     will be squashed into a single commit.
     """
-    configure_logging(verbose)
-
     # Determine which preset to load
     preset_path: Path
     if config:
@@ -58,6 +56,10 @@ def run(preset_name: str | None, config: Path | None, dry_run: bool, verbose: in
         preset = load_preset(preset_path)
     except Exception as e:
         raise click.ClickException(f"Failed to load preset: {e}")
+
+    # Configure logging with preset name for log file
+    log_file = configure_logging(verbose, preset_name=preset.name)
+    click.echo(f"Log file: {log_file}")
 
     run_loop(preset, dry_run=dry_run, auto_squash=not no_squash, max_iterations=max_iterations)
 
