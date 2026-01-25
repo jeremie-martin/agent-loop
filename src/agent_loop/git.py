@@ -126,6 +126,11 @@ Output ONLY the commit message—no preamble, no explanation. First line under 7
         result = subprocess.run(cmd, capture_output=True, text=True, check=True)
         # Clean up the output
         message = result.stdout.strip()
+        # Strip markdown code blocks if present
+        if message.startswith("```") and message.endswith("```"):
+            lines = message.split("\n")
+            # Remove first and last lines (the ``` markers)
+            message = "\n".join(lines[1:-1]).strip()
         if message:
             return message
     except Exception:

@@ -5,7 +5,7 @@ from pathlib import Path
 import click
 
 from agent_loop import __version__
-from agent_loop.git import get_commits_since, get_repo, squash_commits
+from agent_loop.git import generate_squash_message_with_agent, get_commits_since, get_repo, squash_commits
 from agent_loop.loop import run_loop
 from agent_loop.preset import find_preset, list_presets, load_preset
 
@@ -79,11 +79,13 @@ def list_cmd() -> None:
 
 @main.command()
 @click.option("--since", required=True, help="Commit hash to squash from (exclusive)")
-@click.option("--message", "-m", help="Custom commit message (auto-generated if not specified)")
-def squash(since: str, message: str | None) -> None:
+@click.option("--message", "-m", help="Custom commit message (skips agent generation)")
+@click.option("--no-agent", is_flag=True, help="Don't use agent to generate commit message")
+def squash(since: str, message: str | None, no_agent: bool) -> None:
     """Manually squash commits from a previous run.
 
     This command squashes all commits from --since up to HEAD into a single commit.
+    By default, uses an LLM agent to generate a meaningful commit message.
     """
     try:
         repo = get_repo()
@@ -95,6 +97,15 @@ def squash(since: str, message: str | None) -> None:
         raise click.ClickException(f"No commits found since {since}")
 
     click.echo(f"Squashing {len(commits)} commit(s) since {since[:8]}...")
+
+    # Generate message with agent unless --no-agent or --message provided
+    if message is None and not no_agent:
+        click.echo("Generating commit message with agent...")
+        message = generate_squash_message_with_agent(repo, since)
+        if message:
+            click.echo(f"Generated message: {message.split(chr(10))[0]}")
+        else:
+            click.echo("Agent failed to generate message, using fallback")
 
     if squash_commits(repo, since, message):
         click.echo("Squash complete.")
