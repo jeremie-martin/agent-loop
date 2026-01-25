@@ -21,10 +21,10 @@ Useful for iterative document review, code refactoring, or any task where you wa
 # Install as a uv tool (recommended, installs to ~/.local/bin)
 uv tool install /path/to/agent-loop
 
-# Update after changes (reinstall to pick up version changes)
-uv tool install . --reinstall
+# Update after code changes (must use --force to rebuild)
+uv tool install . --force
 
-# Or for development (editable)
+# Or for development (editable, changes apply immediately)
 pip install -e .
 ```
 
@@ -91,7 +91,7 @@ Built-in presets include accessibility, api-docs, code-refactor, dead-code, depe
 | `agent-loop run -c, --config <file>` | Run with a custom preset file |
 | `agent-loop list` | List available built-in presets |
 | `agent-loop init <name>` | Create a new preset template |
-| `agent-loop squash --since <hash> [-m <message>]` | Squash commits since a given hash (generates message from commits if `-m` omitted) |
+| `agent-loop squash --since <hash>` | Squash commits since a given hash (uses LLM to generate commit message) |
 | `agent-loop completion <shell>` | Generate shell completion script (bash/zsh/fish) |
 
 ### Run options
@@ -100,6 +100,11 @@ Built-in presets include accessibility, api-docs, code-refactor, dead-code, depe
 - `-v, --verbose`: Enable verbose output
 - `--no-squash`: Don't squash commits when stopping
 - `-n, --max-iterations`: Maximum number of iterations to run
+
+### Squash options
+
+- `-m, --message`: Custom commit message (skips LLM generation)
+- `--no-agent`: Use simple bullet-list fallback instead of LLM
 
 ## Shell Completion
 
