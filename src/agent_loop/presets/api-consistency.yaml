@@ -52,15 +52,15 @@ modes:
     prompt: |
       API changes must propagate throughout the codebase. When the API changes, callers, documentation, and tests need to reflect those changes.
 
-      Check git diff to see what API changes were made. For each change, three areas need updating:
+      Check git diff to see what API changes were made. Three independent areas need updating:
 
-      1. **Internal callers**: Code that calls the changed endpoints needs to use the new patterns. Update request shapes, handle new response formats, adapt to validation changes.
+      1. **Internal callers**: Code that calls the changed endpoints—request shapes, response handling, validation adaptation.
 
-      2. **Documentation**: API references, examples, and parameter descriptions need to match reality. README files, API docs, inline comments that mention endpoints.
+      2. **Documentation**: API references, examples, and parameter descriptions in README files, API docs, and inline comments.
 
-      3. **Tests**: Test expectations need to match the new behavior. Mock responses, test data, assertion values.
+      3. **Tests**: Test expectations, mock responses, and test data matching the new API behavior.
 
-      Work through each area. These three concerns are independent—parallelize across them when the codebase is large.
+      Launch three sub-agents to handle these areas in parallel. Each sub-agent edits its area directly. Wait for all three to complete.
 
       After all updates, run the full test suite. Breaking changes are acceptable when the entire codebase adapts accordingly. The measure of success is passing tests.
 

@@ -49,17 +49,19 @@ modes:
     prompt: |
       Error handling changes affect code that catches or tests for specific exceptions.
 
-      Check git diff to see what error handling changed. Look for:
+      Check git diff to see what error handling changed:
       - Changed exception types (ValueError → CustomError)
       - Changed exception messages that tests assert on
       - Changed patterns (return None → raise, or vice versa)
 
-      For each change, update affected code:
-      - Catch blocks expecting the old exception type
-      - Tests asserting on specific exceptions or messages
-      - Documentation describing error behavior
+      Three areas need updating:
+      1. **Catch blocks** expecting the old exception type
+      2. **Tests** asserting on specific exceptions or messages
+      3. **Documentation** describing error behavior
 
-      Run tests after updates. Failing tests indicate missed sync points.
+      Launch sub-agents to update each area in parallel. Each sub-agent edits its area directly.
+
+      After all updates, run tests. Failing tests indicate missed sync points.
 
 review:
   enabled: true
