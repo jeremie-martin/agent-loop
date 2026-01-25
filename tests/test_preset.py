@@ -57,55 +57,44 @@ class TestGetFullPrompt:
 class TestLoadPreset:
     """Tests for load_preset()."""
 
-    @pytest.mark.parametrize(
-        "yaml_content,expected_prefix,expected_suffix,check_multiline",
-        [
-            (
-                dedent("""
-                    name: test-preset
-                    description: A test preset
-                    prompt_prefix: Always be kind.
-                    prompt_suffix: Commit your work.
-                    modes:
-                      - name: review
-                        prompt: Review the code.
-                """),
-                "Always be kind.",
-                "Commit your work.",
-                False,
-            ),
-            (
-                dedent("""
-                    name: test
-                    prompt_suffix: |
-                      First line.
-                      Second line.
-                    modes:
-                      - name: review
-                        prompt: Review.
-                """),
-                None,
-                None,
-                True,
-            ),
-        ],
-    )
-    def test_loads_prefix_suffix(self, tmp_path: Path, yaml_content, expected_prefix, expected_suffix, check_multiline):
-        """Prefix and suffix loaded from YAML, including multiline."""
+    def test_loads_prefix_and_suffix(self, tmp_path: Path):
+        """Prefix and suffix loaded from YAML."""
+        yaml_content = dedent("""
+            name: test-preset
+            description: A test preset
+            prompt_prefix: Always be kind.
+            prompt_suffix: Commit your work.
+            modes:
+              - name: review
+                prompt: Review the code.
+        """)
         preset_file = tmp_path / "test.yaml"
         preset_file.write_text(yaml_content)
 
         preset = load_preset(preset_file)
 
-        if check_multiline:
-            assert preset.prompt_suffix is not None
-            assert "First line." in preset.prompt_suffix
-            assert "Second line." in preset.prompt_suffix
-        else:
-            if expected_prefix is not None:
-                assert preset.prompt_prefix == expected_prefix
-            if expected_suffix is not None:
-                assert preset.prompt_suffix == expected_suffix
+        assert preset.prompt_prefix == "Always be kind."
+        assert preset.prompt_suffix == "Commit your work."
+
+    def test_loads_multiline_yaml_strings(self, tmp_path: Path):
+        """Multiline YAML strings preserved in prefix/suffix."""
+        yaml_content = dedent("""
+            name: test
+            prompt_suffix: |
+              First line.
+              Second line.
+            modes:
+              - name: review
+                prompt: Review.
+        """)
+        preset_file = tmp_path / "test.yaml"
+        preset_file.write_text(yaml_content)
+
+        preset = load_preset(preset_file)
+
+        assert preset.prompt_suffix is not None
+        assert "First line." in preset.prompt_suffix
+        assert "Second line." in preset.prompt_suffix
 
     def test_prefix_suffix_optional(self, tmp_path: Path):
         """Prefix and suffix default to None when not specified."""
@@ -217,32 +206,27 @@ class TestBuiltinPresets:
             assert len(preset.modes) > 0, f"Preset {name} has no modes"
             assert all(m.name and m.prompt for m in preset.modes), f"Preset {name} has invalid modes"
 
-    @pytest.mark.parametrize(
-        "preset_name,mode_name",
-        [
-            ("docs-review", "quality"),
-            ("frontend-style", "tokens"),
-        ],
-    )
-    def test_self_review_presets_have_embedded_review(self, preset_name, mode_name):
-        """Self-review presets have commit suffix and embedded review patterns."""
-        path = find_preset(preset_name)
-        assert path is not None
-
+    def test_presets_have_commit_suffix(self):
+        """Presets instruct agents to commit at the end."""
+        path = find_preset("docs-review")
         preset = load_preset(path)
 
-        # Has prompt_suffix with commit instruction (docs-review)
-        if preset_name == "docs-review":
-            assert preset.prompt_suffix is not None
-            assert "commit" in preset.prompt_suffix.lower()
+        assert preset.prompt_suffix is not None
+        assert "commit" in preset.prompt_suffix.lower()
 
-        # Self-review is embedded in prompts, not external review config
-        assert preset.review is None
+    def test_presets_use_self_review_not_external_review(self):
+        """Presets embed self-review in prompts instead of external review config."""
+        for preset_name in ["docs-review", "frontend-style", "test-quality"]:
+            path = find_preset(preset_name)
+            preset = load_preset(path)
 
-        # Verify self-review pattern is in the mode prompts
-        mode = next(m for m in preset.modes if m.name == mode_name)
-        assert "sub-agent" in mode.prompt.lower()
-        assert "filter" in mode.prompt.lower()
+            # No external review config
+            assert preset.review is None, f"{preset_name} should not have external review"
+
+            # Self-review pattern in first mode
+            first_mode = preset.modes[0]
+            assert "sub-agent" in first_mode.prompt.lower(), f"{preset_name} missing sub-agent instruction"
+            assert "filter" in first_mode.prompt.lower(), f"{preset_name} missing filter instruction"
 
     def test_suffix_applied_to_all_modes(self):
         """Suffix appears in full prompt for every mode."""
