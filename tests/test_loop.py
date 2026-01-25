@@ -25,17 +25,23 @@ class TestModeCycling:
         )
         runner = LoopRunner(preset, dry_run=True)
 
-        # First iteration: first mode
+        # First iteration: first mode (accuracy)
         runner._run_iteration()
         assert runner.iteration == 1
+        call_args = mock_run.call_args
+        assert "Check accuracy." in call_args[1]["prompt"]
 
-        # Second iteration: second mode
+        # Second iteration: second mode (clarity)
         runner._run_iteration()
         assert runner.iteration == 2
+        call_args = mock_run.call_args
+        assert "Check clarity." in call_args[1]["prompt"]
 
-        # Third iteration: wraps back to first mode
+        # Third iteration: wraps back to first mode (accuracy)
         runner._run_iteration()
         assert runner.iteration == 3
+        call_args = mock_run.call_args
+        assert "Check accuracy." in call_args[1]["prompt"]
 
 
 class TestReviewCycleTrigger:
@@ -72,6 +78,10 @@ class TestReviewCycleTrigger:
             runner._run_iteration()
             if expected_call:
                 mock_review.assert_called_once()
+                # Verify review cycle receives the correct preset and config
+                call_kwargs = mock_review.call_args[1]
+                assert call_kwargs["preset"] is preset
+                assert call_kwargs["config"] is review_config
             else:
                 mock_review.assert_not_called()
 

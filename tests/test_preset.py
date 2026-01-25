@@ -64,7 +64,11 @@ class TestGetFullPrompt:
 
         result = preset.get_full_prompt(mode)
 
+        # Trailing/leading whitespace removed from each part
+        # No extra blank lines between parts
         assert result == "Prefix with trailing space.\n\nPrompt with whitespace.\n\nSuffix with leading space."
+        # Verify no leading/trailing whitespace on the whole result
+        assert result == result.strip()
 
 
 class TestLoadPreset:
