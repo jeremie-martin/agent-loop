@@ -107,9 +107,17 @@ Built-in presets include accessibility, api-docs, code-refactor, dead-code, depe
 ### Run options
 
 - `--dry-run`: Show what would happen without executing
-- `-v, --verbose`: Enable verbose output
+- `-v`: Increase verbosity (use `-v` for debug info, `-vv` for full prompts)
 - `--no-squash`: Don't squash commits when stopping
 - `-n, --max-iterations`: Maximum number of iterations to run
+
+### Verbosity levels
+
+| Flag | Level | What you see |
+|------|-------|--------------|
+| (none) | INFO | Basic progress, iteration markers |
+| `-v` | DEBUG | Start commit, command details |
+| `-vv` | TRACE | Full prompts sent to agents |
 
 ### Squash options
 

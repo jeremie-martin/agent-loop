@@ -2,7 +2,8 @@
 
 import signal
 import sys
-from datetime import datetime
+
+from loguru import logger
 
 from .git import generate_squash_message_with_agent, get_current_commit, get_repo, squash_commits
 from .preset import Preset
@@ -17,28 +18,16 @@ class LoopRunner:
         self,
         preset: Preset,
         dry_run: bool = False,
-        verbose: bool = False,
         auto_squash: bool = True,
         max_iterations: int | None = None,
     ):
         self.preset = preset
         self.dry_run = dry_run
-        self.verbose = verbose
         self.auto_squash = auto_squash
         self.max_iterations = max_iterations
         self.iteration = 0
         self.start_commit: str | None = None
         self._interrupted = False
-
-    def _log(self, message: str) -> None:
-        """Print a log message."""
-        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        print(f"[{timestamp}] {message}")
-
-    def _verbose(self, message: str) -> None:
-        """Print a verbose log message."""
-        if self.verbose:
-            self._log(message)
 
     def _run_iteration(self) -> bool:
         """Run a single iteration of the loop.
@@ -49,20 +38,18 @@ class LoopRunner:
         mode = self.preset.modes[mode_idx]
         is_cycle_complete = mode_idx == len(self.preset.modes) - 1
 
-        print()
-        print("=" * 60)
-        self._log(f"Iteration {self.iteration + 1} [{mode.name}]")
-        print("=" * 60)
+        logger.info("")
+        logger.info("=" * 60)
+        logger.info(f"Iteration {self.iteration + 1} [{mode.name}]")
+        logger.info("=" * 60)
+
+        prompt = self.preset.get_full_prompt(mode)
 
         # Run the agent (agents commit their own changes via prompts)
-        success = run_opencode(
-            prompt=self.preset.get_full_prompt(mode),
-            dry_run=self.dry_run,
-            verbose=self.verbose,
-        )
+        success = run_opencode(prompt=prompt, dry_run=self.dry_run)
 
         if not success:
-            self._log("Agent returned non-zero; continuing to next iteration")
+            logger.warning("Agent returned non-zero; continuing to next iteration")
 
         self.iteration += 1
 
@@ -77,49 +64,50 @@ class LoopRunner:
         if not self.preset.review:
             return
 
-        print()
-        print("-" * 60)
-        self._log("Running review cycle...")
-        print("-" * 60)
+        logger.info("")
+        logger.info("-" * 60)
+        logger.info("Running review cycle...")
+        logger.info("-" * 60)
 
         success = run_review_cycle(
             preset=self.preset,
             config=self.preset.review,
             dry_run=self.dry_run,
-            verbose=self.verbose,
         )
 
         if success:
-            self._log("Review cycle completed")
+            logger.info("Review cycle completed")
         else:
-            self._log("Review cycle had issues")
+            logger.warning("Review cycle had issues")
 
     def _handle_interrupt(self, signum: int, frame) -> None:
         """Handle Ctrl+C gracefully."""
         if self._interrupted:
             # Second interrupt - force exit
-            print("\nForce stopping...")
+            logger.warning("Force stopping...")
             sys.exit(1)
 
         self._interrupted = True
-        print("\n")
-        self._log("Stopping loop (press Ctrl+C again to force quit)...")
+        logger.info("")
+        logger.info("Stopping loop (press Ctrl+C again to force quit)...")
 
     def run(self) -> None:
         """Run the main loop until interrupted."""
-        print(f"Starting agent loop: {self.preset.name}")
-        print(f"Description: {self.preset.description}")
-        print(f"Modes: {', '.join(m.name for m in self.preset.modes)}")
+        logger.info(f"Starting agent loop: {self.preset.name}")
+        logger.info(f"Description: {self.preset.description}")
+        logger.info(f"Modes: {', '.join(m.name for m in self.preset.modes)}")
+        if self.preset.review and self.preset.review.enabled:
+            logger.info("Review: enabled (runs after each cycle)")
         if self.max_iterations:
-            print(f"Max iterations: {self.max_iterations}")
+            logger.info(f"Max iterations: {self.max_iterations}")
         if self.dry_run:
-            print("[DRY RUN MODE - no changes will be made]")
-        print("Press Ctrl+C to stop")
+            logger.warning("[DRY RUN MODE - no changes will be made]")
+        logger.info("Press Ctrl+C to stop")
 
         if not self.dry_run:
             repo = get_repo()
             self.start_commit = get_current_commit(repo)
-            self._verbose(f"Start commit: {self.start_commit[:8]}")
+            logger.debug(f"Start commit: {self.start_commit[:8]}")
 
         # Set up signal handler
         original_handler = signal.signal(signal.SIGINT, self._handle_interrupt)
@@ -127,7 +115,7 @@ class LoopRunner:
         try:
             while not self._interrupted:
                 if self.max_iterations and self.iteration >= self.max_iterations:
-                    self._log(f"Reached max iterations ({self.max_iterations})")
+                    logger.info(f"Reached max iterations ({self.max_iterations})")
                     break
                 self._run_iteration()
         finally:
@@ -146,12 +134,12 @@ class LoopRunner:
         current = get_current_commit(repo)
 
         if current == self.start_commit:
-            self._log("No commits to squash")
+            logger.info("No commits to squash")
             return
 
-        print()
-        self._log(f"Squashing commits since {self.start_commit[:8]}...")
-        self._log("Generating commit message...")
+        logger.info("")
+        logger.info(f"Squashing commits since {self.start_commit[:8]}...")
+        logger.debug("Generating commit message with agent...")
 
         # Use agent to generate a meaningful squash message
         message = generate_squash_message_with_agent(repo, self.start_commit)
@@ -159,21 +147,20 @@ class LoopRunner:
         if not message:
             # Fallback if agent fails
             message = f"[agent-loop] {self.preset.name}: {self.iteration} iterations"
-            self._log("Agent failed to generate message, using fallback")
+            logger.warning("Agent failed to generate message, using fallback")
 
         if squash_commits(repo, self.start_commit, message):
-            self._log(f"Squashed into: {message}")
+            logger.info(f"Squashed into: {message}")
         else:
-            self._log("Squash failed or no commits to squash")
+            logger.error("Squash failed or no commits to squash")
 
 
 def run_loop(
     preset: Preset,
     dry_run: bool = False,
-    verbose: bool = False,
     auto_squash: bool = True,
     max_iterations: int | None = None,
 ) -> None:
     """Run the agent loop with the given preset."""
-    runner = LoopRunner(preset, dry_run=dry_run, verbose=verbose, auto_squash=auto_squash, max_iterations=max_iterations)
+    runner = LoopRunner(preset, dry_run=dry_run, auto_squash=auto_squash, max_iterations=max_iterations)
     runner.run()

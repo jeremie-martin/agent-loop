@@ -6,6 +6,7 @@ import click
 
 from agent_loop import __version__
 from agent_loop.git import generate_squash_message_with_agent, get_commits_since, get_repo, squash_commits
+from agent_loop.logging import configure_logging
 from agent_loop.loop import run_loop
 from agent_loop.preset import find_preset, list_presets, load_preset
 
@@ -27,10 +28,10 @@ def main() -> None:
 @click.argument("preset_name", required=False, shell_complete=complete_preset_name)
 @click.option("--config", "-c", type=click.Path(exists=True, path_type=Path), help="Path to a custom preset YAML file")
 @click.option("--dry-run", is_flag=True, help="Show what would happen without executing")
-@click.option("--verbose", "-v", is_flag=True, help="Enable verbose output")
+@click.option("-v", "--verbose", count=True, help="Increase verbosity (-v for debug, -vv for trace with prompts)")
 @click.option("--no-squash", is_flag=True, help="Don't squash commits on stop")
 @click.option("-n", "--max-iterations", type=int, help="Maximum number of iterations to run")
-def run(preset_name: str | None, config: Path | None, dry_run: bool, verbose: bool, no_squash: bool, max_iterations: int | None) -> None:
+def run(preset_name: str | None, config: Path | None, dry_run: bool, verbose: int, no_squash: bool, max_iterations: int | None) -> None:
     """Run an agent loop with the specified preset.
 
     PRESET_NAME is the name of a built-in preset (use 'agent-loop list' to see available presets).
@@ -39,6 +40,8 @@ def run(preset_name: str | None, config: Path | None, dry_run: bool, verbose: bo
     Press Ctrl+C to stop the loop. By default, all commits made during the loop
     will be squashed into a single commit.
     """
+    configure_logging(verbose)
+
     # Determine which preset to load
     preset_path: Path
     if config:
@@ -56,7 +59,7 @@ def run(preset_name: str | None, config: Path | None, dry_run: bool, verbose: bo
     except Exception as e:
         raise click.ClickException(f"Failed to load preset: {e}")
 
-    run_loop(preset, dry_run=dry_run, verbose=verbose, auto_squash=not no_squash, max_iterations=max_iterations)
+    run_loop(preset, dry_run=dry_run, auto_squash=not no_squash, max_iterations=max_iterations)
 
 
 @main.command("list")

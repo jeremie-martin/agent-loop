@@ -1,5 +1,7 @@
 """Review cycle logic for validating changes after mode cycles."""
 
+from loguru import logger
+
 from .preset import Preset, ReviewConfig
 from .runner import run_opencode
 
@@ -50,20 +52,22 @@ def build_review_prompt(preset: Preset, config: ReviewConfig) -> str:
     return "\n".join(parts)
 
 
-def run_review_cycle(preset: Preset, config: ReviewConfig, dry_run: bool = False, verbose: bool = False) -> bool:
+def run_review_cycle(preset: Preset, config: ReviewConfig, dry_run: bool = False) -> bool:
     """Run a review cycle using a self-contained review agent.
 
     Args:
         preset: The preset being used (for context).
         config: The review configuration.
         dry_run: If True, print the command without executing.
-        verbose: If True, print additional information.
 
     Returns:
         True if the review completed successfully, False otherwise.
     """
     if not config.enabled:
+        logger.debug("Review cycle disabled, skipping")
         return True
 
     prompt = build_review_prompt(preset, config)
-    return run_opencode(prompt=prompt, dry_run=dry_run, verbose=verbose)
+    logger.debug(f"Built review prompt ({len(prompt)} chars)")
+
+    return run_opencode(prompt=prompt, dry_run=dry_run)
