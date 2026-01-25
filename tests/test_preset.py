@@ -3,8 +3,6 @@
 from pathlib import Path
 from textwrap import dedent
 
-import pytest
-
 from agent_loop.preset import Mode, Preset, ReviewConfig, find_preset, list_presets, load_preset
 
 
@@ -220,15 +218,15 @@ class TestReviewConfig:
 class TestOptionalFields:
     """Tests for optional fields that default to None and load from YAML."""
 
-    @pytest.mark.parametrize("field", ["model", "review__scope_globs"])
-    def test_optional_fields_default_to_none(self, field):
-        """Optional fields default to None when not specified."""
-        if field == "model":
-            preset = Preset(name="test", description="", modes=[])
-            assert preset.model is None
-        elif field == "review__scope_globs":
-            config = ReviewConfig()
-            assert config.scope_globs is None
+    def test_model_defaults_to_none(self):
+        """Model field defaults to None when not specified."""
+        preset = Preset(name="test", description="", modes=[])
+        assert preset.model is None
+
+    def test_scope_globs_defaults_to_none(self):
+        """Review scope_globs field defaults to None when not specified."""
+        config = ReviewConfig()
+        assert config.scope_globs is None
 
     def test_optional_fields_loaded_from_yaml(self, tmp_path: Path):
         """Optional fields are loaded from YAML when present."""
