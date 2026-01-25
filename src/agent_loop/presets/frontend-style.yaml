@@ -1,7 +1,11 @@
 name: frontend-style
 description: Establish coherent, centralized styling with systematic visual decisions
 
-prompt_suffix: Commit any changes you make. Do not use the "question" tool or any tool requiring user input.
+prompt_suffix: |
+  Commit any changes you make with a clear message summarizing what was done.
+  Do not use the "question" tool or any tool requiring user input.
+  Do not create markdown files, audit reports, or documentation.
+  Only modify the actual source files (CSS, SCSS, JS, TSX, etc.).
 
 modes:
   - name: inventory
@@ -26,11 +30,26 @@ modes:
     prompt: |
       A design system only works if the codebase uses it. Centralized tokens that nobody references are just documentation.
 
+      Work through replacements systematically by category:
+      1. First pass: colors only (all color values to color tokens)
+      2. Second pass: spacing only (margins, padding to spacing tokens)
+      3. Third pass: typography only (font sizes, weights to type tokens)
+
+      Complete and verify each category before moving to the next.
+
       Sweep through the codebase replacing hardcoded values with their token equivalents. `#3b82f6` becomes `var(--color-primary)`. `margin: 16px` becomes `margin: var(--space-4)`. `font-size: 14px` becomes the appropriate typography token.
 
       Spawn sub-agents to handle different areas—one for color adoption, one for spacing, one for typography—if the codebase is large.
 
       When you find values that don't match any token, decide: Should this be a new token (if it represents a meaningful decision)? Or should it use an existing token (if it's just a slight variation that should be consolidated)?
+
+      After making replacements in each file:
+      1. Verify the file still parses (no syntax errors)
+      2. Check that all referenced tokens are defined
+      3. If using a build system, run it to catch compilation errors
+
+      If you introduce errors, fix them before moving to the next file.
+      Do not leave files in a broken state.
 
   - name: coherence
     prompt: |
@@ -39,3 +58,19 @@ modes:
       Look for: orphan values that don't fit the scale, inconsistent naming (is it `--color-gray-500` or `--color-medium-gray`?), missing steps in scales, tokens that duplicate each other semantically.
 
       Refine the system. Adjust scales to be more systematic. Consolidate near-duplicates. Fill gaps where the scale jumps oddly. The goal: someone new could look at the tokens and understand the system's logic.
+
+review:
+  enabled: true
+  check_prompt: |
+    Verify the styling changes:
+    1. Are all token references valid (tokens exist and are defined)?
+    2. Are replacements consistent (same value maps to same token everywhere)?
+    3. Do any files have CSS syntax errors?
+    If a build/lint command exists (check package.json), run it.
+
+  filter_prompt: |
+    Filter out:
+    - Suggestions to add new tokens (out of scope)
+    - Style opinions about token naming
+    - Warnings about values intentionally left as literals
+    Only act on actual breakages or inconsistencies.

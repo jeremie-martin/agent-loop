@@ -1,0 +1,69 @@
+"""Review cycle logic for validating changes after mode cycles."""
+
+from .preset import Preset, ReviewConfig
+from .runner import run_opencode
+
+
+def build_review_prompt(preset: Preset, config: ReviewConfig) -> str:
+    """Build a self-contained review prompt from preset and config.
+
+    The prompt includes all context needed for the agent to:
+    1. Understand the task
+    2. Review uncommitted changes
+    3. Filter feedback to avoid false positives
+    4. Fix genuine issues
+    5. Commit with a meaningful message
+    """
+    parts = []
+
+    # Task context
+    parts.append(f"Task: {preset.description}")
+    parts.append("")
+    parts.append("There are uncommitted changes. Review and finalize them.")
+    parts.append("")
+
+    # Review instructions
+    if config.check_prompt:
+        parts.append("**Review:**")
+        parts.append(config.check_prompt.strip())
+        parts.append("")
+
+    # Filter instructions
+    if config.filter_prompt:
+        parts.append("**Before acting, filter your feedback:**")
+        parts.append(config.filter_prompt.strip())
+        parts.append("")
+
+    # Fix instructions
+    parts.append("**Fix:**")
+    if config.fix_prompt:
+        parts.append(config.fix_prompt.strip())
+    else:
+        parts.append("If actionable issues remain after filtering, fix them.")
+        parts.append("You may spawn sub-agents to help with specific fixes.")
+    parts.append("")
+
+    # Commit instructions
+    parts.append("**Commit:**")
+    parts.append("Create a single commit with a clear message summarizing what was done.")
+
+    return "\n".join(parts)
+
+
+def run_review_cycle(preset: Preset, config: ReviewConfig, dry_run: bool = False, verbose: bool = False) -> bool:
+    """Run a review cycle using a self-contained review agent.
+
+    Args:
+        preset: The preset being used (for context).
+        config: The review configuration.
+        dry_run: If True, print the command without executing.
+        verbose: If True, print additional information.
+
+    Returns:
+        True if the review completed successfully, False otherwise.
+    """
+    if not config.enabled:
+        return True
+
+    prompt = build_review_prompt(preset, config)
+    return run_opencode(prompt=prompt, dry_run=dry_run, verbose=verbose)

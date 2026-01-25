@@ -4,8 +4,9 @@ import signal
 import sys
 from datetime import datetime
 
-from .git import commit_changes, generate_squash_message_with_agent, get_current_commit, get_repo, has_changes, squash_commits
+from .git import generate_squash_message_with_agent, get_current_commit, get_repo, squash_commits
 from .preset import Preset
+from .review import run_review_cycle
 from .runner import run_opencode
 
 
@@ -46,13 +47,14 @@ class LoopRunner:
         """
         mode_idx = self.iteration % len(self.preset.modes)
         mode = self.preset.modes[mode_idx]
+        is_cycle_complete = mode_idx == len(self.preset.modes) - 1
 
         print()
         print("=" * 60)
         self._log(f"Iteration {self.iteration + 1} [{mode.name}]")
         print("=" * 60)
 
-        # Run the agent
+        # Run the agent (agents commit their own changes via prompts)
         success = run_opencode(
             prompt=self.preset.get_full_prompt(mode),
             dry_run=self.dry_run,
@@ -62,18 +64,35 @@ class LoopRunner:
         if not success:
             self._log("Agent returned non-zero; continuing to next iteration")
 
-        # Commit changes if any
-        if not self.dry_run:
-            repo = get_repo()
-            if has_changes(repo):
-                msg = f"[{mode.name}] iteration {self.iteration + 1}"
-                commit_changes(repo, msg)
-                self._log(f"Committed: {msg}")
-            else:
-                self._log("No changes to commit")
-
         self.iteration += 1
+
+        # Run review after completing a full cycle of all modes
+        if is_cycle_complete and self.preset.review and self.preset.review.enabled:
+            self._run_review_cycle()
+
         return True
+
+    def _run_review_cycle(self) -> None:
+        """Run a review cycle to validate changes."""
+        if not self.preset.review:
+            return
+
+        print()
+        print("-" * 60)
+        self._log("Running review cycle...")
+        print("-" * 60)
+
+        success = run_review_cycle(
+            preset=self.preset,
+            config=self.preset.review,
+            dry_run=self.dry_run,
+            verbose=self.verbose,
+        )
+
+        if success:
+            self._log("Review cycle completed")
+        else:
+            self._log("Review cycle had issues")
 
     def _handle_interrupt(self, signum: int, frame) -> None:
         """Handle Ctrl+C gracefully."""

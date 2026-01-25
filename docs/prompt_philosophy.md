@@ -32,6 +32,40 @@ Phrases like "genuinely improve" and "don't reorganize for the sake of reorganiz
 
 Clean separation lets each pass do its job well. agent-loop cycles through separate modes, each with a single focus.
 
+## 8. Self-contained prompts
+
+Agents don't know they're in a loop. Each prompt should be complete and task-focused without framework jargon like "preset," "cycle," or "iteration." The agent just sees a task to complete.
+
+Context comes from:
+- Task description (what the work is about)
+- Uncommitted changes (what's been done so far)
+- Specific instructions (what to check, fix, or do)
+
+## 9. Ground claims in source
+
+For documentation work, require agents to verify claims against actual source code. Phrases like "before editing, read the corresponding source code" and "cite specific code locations" prevent factual drift over iterations.
+
+## 10. Verify before moving on
+
+For tasks with measurable correctness (CSS syntax, token references, build passes), instruct agents to verify each change before proceeding. "If you introduce errors, fix them before moving to the next file" prevents cascading breakage.
+
+## 11. Filter feedback before acting
+
+Review agents should filter their own feedback before acting. This two-step pattern (check → filter → act) prevents over-correction:
+
+```yaml
+review:
+  check_prompt: |
+    Verify that all token references are valid...
+  filter_prompt: |
+    Filter out:
+    - Style opinions about naming
+    - Suggestions to add new tokens (out of scope)
+    Only act on actual breakages.
+```
+
 ## Example in practice
 
-The built-in `docs-review` preset demonstrates these principles with three modes (accuracy, structure, clarity). Each mode has a single focus, uses destination-focused language, and treats conciseness as quality. See `src/agent_loop/presets/docs-review.yaml` for the full prompts.
+The built-in `docs-review` preset demonstrates these principles with three modes (accuracy, structure, clarity) plus a review phase. Each mode has a single focus, uses destination-focused language, and treats conciseness as quality. The review phase catches factual drift by cross-checking against source code. See `src/agent_loop/presets/docs-review.yaml` for the full prompts.
+
+The `frontend-style` preset shows systematic verification: the adoption mode works through replacements by category (colors, then spacing, then typography), verifying each file before moving on. The review phase runs the build to catch breakages.

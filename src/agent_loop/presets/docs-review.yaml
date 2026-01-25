@@ -1,7 +1,14 @@
 name: docs-review
 description: Review documentation for quality, accuracy, and coherence
 
-prompt_suffix: Commit any changes you make. Do not use the "question" tool or any tool requiring user input.
+prompt_prefix: |
+  Before editing any documentation file, first read the corresponding source code
+  to verify current behavior. Cite specific code locations for any factual claims
+  you add or modify.
+
+prompt_suffix: |
+  Commit any changes you make with a clear message summarizing what was done.
+  Do not use the "question" tool or any tool requiring user input.
 
 modes:
   - name: accuracy
@@ -10,7 +17,14 @@ modes:
 
       Then assess the documentation against that reality. Good documentation earns trust by being accurate: what it describes exists, what exists is described where readers would look for it, and the two don't drift apart.
 
-      For each documentation file, consider: Does this reflect the current state of the project? Are there claims that have gone stale, or capabilities that exist but aren't surfaced? Does terminology match what the code actually calls things?
+      For each documentation file, identify factual claims about:
+      - API signatures, parameters, return types
+      - Behavior descriptions ("when X happens, Y occurs")
+      - Configuration options and their effects
+
+      For each claim, locate the corresponding source code. If you cannot find code that supports a claim, flag it for removal or correction.
+
+      Does this reflect the current state of the project? Are there claims that have gone stale, or capabilities that exist but aren't surfaced? Does terminology match what the code actually calls things?
 
   - name: structure
     prompt: |
@@ -31,3 +45,19 @@ modes:
       For each file, consider: Does this read well? Are there passages that could be tightened without losing meaning? Is the level of detail appropriate for who's reading this and why? Does the structure help or hinder understanding?
 
       Make edits that improve clarity or tighten prose. Leave alone anything that already communicates effectively—editing for the sake of editing adds churn without value.
+
+review:
+  enabled: true
+  check_prompt: |
+    For each modified doc file, verify:
+    1. All factual claims are supported by current source code
+    2. No content was removed that was actually accurate
+    3. Terminology matches what the code uses
+    Spawn sub-agents to read source files and cross-check if needed.
+
+  filter_prompt: |
+    Filter out:
+    - Stylistic preferences that don't affect accuracy
+    - Suggestions to add content beyond current scope
+    - Warnings about things that are actually correct
+    Only act on genuine accuracy issues.

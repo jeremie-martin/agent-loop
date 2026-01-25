@@ -18,6 +18,16 @@ class Mode:
 
 
 @dataclass
+class ReviewConfig:
+    """Configuration for the review phase after each cycle."""
+
+    enabled: bool = True
+    check_prompt: str = ""
+    filter_prompt: str = ""
+    fix_prompt: str | None = None
+
+
+@dataclass
 class Preset:
     """A loaded preset configuration."""
 
@@ -27,6 +37,7 @@ class Preset:
     path: Path | None = None
     prompt_prefix: str | None = None
     prompt_suffix: str | None = None
+    review: ReviewConfig | None = None
 
     def get_full_prompt(self, mode: Mode) -> str:
         """Return mode prompt with prefix/suffix applied."""
@@ -47,6 +58,18 @@ def _parse_modes(data: list[dict[str, Any]]) -> list[Mode]:
             raise ValueError("Each mode must have 'name' and 'prompt' fields")
         modes.append(Mode(name=m["name"], prompt=m["prompt"]))
     return modes
+
+
+def _parse_review_config(data: dict[str, Any] | None) -> ReviewConfig | None:
+    """Parse review configuration from YAML data."""
+    if data is None:
+        return None
+    return ReviewConfig(
+        enabled=data.get("enabled", True),
+        check_prompt=data.get("check_prompt", ""),
+        filter_prompt=data.get("filter_prompt", ""),
+        fix_prompt=data.get("fix_prompt"),
+    )
 
 
 def load_preset(path: Path) -> Preset:
@@ -72,6 +95,7 @@ def load_preset(path: Path) -> Preset:
         path=path,
         prompt_prefix=data.get("prompt_prefix"),
         prompt_suffix=data.get("prompt_suffix"),
+        review=_parse_review_config(data.get("review")),
     )
 
 

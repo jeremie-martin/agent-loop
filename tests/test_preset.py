@@ -3,7 +3,7 @@
 from pathlib import Path
 from textwrap import dedent
 
-from agent_loop.preset import Mode, Preset, find_preset, list_presets, load_preset
+from agent_loop.preset import Mode, Preset, ReviewConfig, find_preset, list_presets, load_preset
 
 
 class TestGetFullPrompt:
@@ -125,6 +125,94 @@ class TestLoadPreset:
         assert "Second line." in preset.prompt_suffix
 
 
+class TestReviewConfig:
+    """Tests for ReviewConfig parsing."""
+
+    def test_review_config_defaults(self):
+        """ReviewConfig has sensible defaults."""
+        config = ReviewConfig()
+
+        assert config.enabled is True
+        assert config.check_prompt == ""
+        assert config.filter_prompt == ""
+        assert config.fix_prompt is None
+
+    def test_loads_review_config(self, tmp_path: Path):
+        """Review config loaded from YAML."""
+        yaml_content = dedent("""
+            name: test-preset
+            modes:
+              - name: review
+                prompt: Review.
+            review:
+              enabled: true
+              check_prompt: Check for issues.
+              filter_prompt: Filter false positives.
+        """)
+        preset_file = tmp_path / "test.yaml"
+        preset_file.write_text(yaml_content)
+
+        preset = load_preset(preset_file)
+
+        assert preset.review is not None
+        assert preset.review.enabled is True
+        assert preset.review.check_prompt == "Check for issues."
+        assert preset.review.filter_prompt == "Filter false positives."
+        assert preset.review.fix_prompt is None
+
+    def test_review_config_disabled(self, tmp_path: Path):
+        """Review can be explicitly disabled."""
+        yaml_content = dedent("""
+            name: test-preset
+            modes:
+              - name: review
+                prompt: Review.
+            review:
+              enabled: false
+        """)
+        preset_file = tmp_path / "test.yaml"
+        preset_file.write_text(yaml_content)
+
+        preset = load_preset(preset_file)
+
+        assert preset.review is not None
+        assert preset.review.enabled is False
+
+    def test_review_config_optional(self, tmp_path: Path):
+        """Review config is None when not specified."""
+        yaml_content = dedent("""
+            name: minimal
+            modes:
+              - name: review
+                prompt: Review.
+        """)
+        preset_file = tmp_path / "minimal.yaml"
+        preset_file.write_text(yaml_content)
+
+        preset = load_preset(preset_file)
+
+        assert preset.review is None
+
+    def test_review_config_with_fix_prompt(self, tmp_path: Path):
+        """Optional fix_prompt is loaded."""
+        yaml_content = dedent("""
+            name: test-preset
+            modes:
+              - name: review
+                prompt: Review.
+            review:
+              check_prompt: Check.
+              filter_prompt: Filter.
+              fix_prompt: Custom fix instructions.
+        """)
+        preset_file = tmp_path / "test.yaml"
+        preset_file.write_text(yaml_content)
+
+        preset = load_preset(preset_file)
+
+        assert preset.review.fix_prompt == "Custom fix instructions."
+
+
 class TestBuiltinPresets:
     """Tests for built-in presets."""
 
@@ -145,6 +233,24 @@ class TestBuiltinPresets:
 
         assert preset.prompt_suffix is not None
         assert "Commit" in preset.prompt_suffix
+
+    def test_docs_review_has_review_config(self):
+        """docs-review preset has review configuration."""
+        path = find_preset("docs-review")
+        preset = load_preset(path)
+
+        assert preset.review is not None
+        assert preset.review.enabled is True
+        assert "factual claims" in preset.review.check_prompt.lower()
+
+    def test_frontend_style_has_review_config(self):
+        """frontend-style preset has review configuration."""
+        path = find_preset("frontend-style")
+        preset = load_preset(path)
+
+        assert preset.review is not None
+        assert preset.review.enabled is True
+        assert "token" in preset.review.check_prompt.lower()
 
     def test_suffix_applied_to_all_modes(self):
         """Suffix appears in full prompt for every mode."""

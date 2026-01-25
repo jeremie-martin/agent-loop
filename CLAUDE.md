@@ -27,27 +27,30 @@ pytest
 src/agent_loop/
 ├── cli.py          # Click CLI commands
 ├── loop.py         # Main loop logic (LoopRunner)
-├── preset.py       # Preset loading (Mode, Preset dataclasses)
+├── preset.py       # Preset loading (Mode, Preset, ReviewConfig dataclasses)
+├── review.py       # Review cycle logic (prompt building, review agent)
 ├── runner.py       # opencode subprocess wrapper
 ├── git.py          # Git operations (commit, squash)
-└── presets/        # Built-in preset YAML files (accessibility, api-docs, code-refactor, dead-code, dependency-audit, docs-review, error-handling, frontend-style, migration, prose-tightening, security-review, test-strengthening, type-tightening)
+└── presets/        # Built-in preset YAML files
 ```
 
 ## Key Files
 
 - `cli.py` - Entry point, command definitions
-- `loop.py` - Main iteration loop, mode cycling, squash logic
-- `preset.py` - YAML parsing, Mode/Preset dataclasses
+- `loop.py` - Main iteration loop, mode cycling, review triggering, squash logic
+- `preset.py` - YAML parsing, Mode/Preset/ReviewConfig dataclasses
+- `review.py` - Review cycle prompt composition and execution
 - `runner.py` - Subprocess wrapper for opencode CLI
 - `git.py` - Commit and squash operations
-- `presets/*.yaml` - Built-in presets (12 presets for various code and documentation review tasks)
+- `presets/*.yaml` - Built-in presets for various code and documentation review tasks
 
 ## Development Notes
 
 When making changes:
-- Test the full loop flow: preset loading → iteration → commit → squash
-- Verify mode cycling wraps correctly (last mode → first mode)
-- Check that commit messages follow the format `[mode] iteration N`
+- Test the full loop flow: preset loading → iteration → review → squash
+- Verify mode cycling wraps correctly (last mode → first mode → review)
+- Review cycles run after completing all modes, not after each iteration
+- Agents commit their own changes via prompts (no framework auto-commit)
 - Ensure squash only squashes iteration commits, not unrelated changes
 
 ## Writing Prompts
