@@ -1,5 +1,6 @@
 name: docs-review
 description: Review documentation for quality, accuracy, and coherence
+model: zai-coding-plan/glm-4.7
 
 prompt_prefix: |
   Before editing any documentation file, first read the corresponding source code

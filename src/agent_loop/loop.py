@@ -5,7 +5,7 @@ import sys
 
 from loguru import logger
 
-from .git import generate_squash_message_with_agent, get_current_commit, get_repo, squash_commits
+from .git import generate_squash_message_with_agent, get_current_commit, get_repo, has_changes, squash_commits
 from .preset import Preset
 from .review import run_review_cycle
 from .runner import run_opencode
@@ -20,14 +20,17 @@ class LoopRunner:
         dry_run: bool = False,
         auto_squash: bool = True,
         max_iterations: int | None = None,
+        max_consecutive_failures: int | None = None,
     ):
         self.preset = preset
         self.dry_run = dry_run
         self.auto_squash = auto_squash
         self.max_iterations = max_iterations
+        self.max_consecutive_failures = max_consecutive_failures
         self.iteration = 0
         self.start_commit: str | None = None
         self._interrupted = False
+        self._consecutive_failures = 0
 
     def _run_iteration(self) -> bool:
         """Run a single iteration of the loop.
@@ -45,11 +48,35 @@ class LoopRunner:
 
         prompt = self.preset.get_full_prompt(mode)
 
+        # Track git state before iteration
+        repo = None
+        commit_before = None
+        if not self.dry_run:
+            repo = get_repo()
+            commit_before = get_current_commit(repo)
+
         # Run the agent (agents commit their own changes via prompts)
-        success = run_opencode(prompt=prompt, dry_run=self.dry_run)
+        success = run_opencode(prompt=prompt, dry_run=self.dry_run, model=self.preset.model)
+
+        # Observe git state after iteration
+        if not self.dry_run and repo:
+            commit_after = get_current_commit(repo)
+            dirty = has_changes(repo)
+            if commit_after != commit_before:
+                logger.debug(f"Iteration committed: {commit_after[:8]}")
+            elif dirty:
+                logger.warning("Iteration left uncommitted changes")
+            else:
+                logger.debug("Iteration made no changes")
 
         if not success:
+            self._consecutive_failures += 1
             logger.warning("Agent returned non-zero; continuing to next iteration")
+            if self.max_consecutive_failures and self._consecutive_failures >= self.max_consecutive_failures:
+                logger.warning(f"Stopping after {self._consecutive_failures} consecutive failures")
+                return False
+        else:
+            self._consecutive_failures = 0
 
         self.iteration += 1
 
@@ -117,7 +144,8 @@ class LoopRunner:
                 if self.max_iterations and self.iteration >= self.max_iterations:
                     logger.info(f"Reached max iterations ({self.max_iterations})")
                     break
-                self._run_iteration()
+                if not self._run_iteration():
+                    break
         finally:
             signal.signal(signal.SIGINT, original_handler)
 
@@ -160,7 +188,14 @@ def run_loop(
     dry_run: bool = False,
     auto_squash: bool = True,
     max_iterations: int | None = None,
+    max_consecutive_failures: int | None = None,
 ) -> None:
     """Run the agent loop with the given preset."""
-    runner = LoopRunner(preset, dry_run=dry_run, auto_squash=auto_squash, max_iterations=max_iterations)
+    runner = LoopRunner(
+        preset,
+        dry_run=dry_run,
+        auto_squash=auto_squash,
+        max_iterations=max_iterations,
+        max_consecutive_failures=max_consecutive_failures,
+    )
     runner.run()

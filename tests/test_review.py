@@ -111,6 +111,39 @@ class TestBuildReviewPrompt:
         assert "**Review scope:**" in result
         assert "**Before acting, filter your feedback:**" not in result
 
+    def test_scope_globs_included_in_prompt(self):
+        """scope_globs interpolated into prompt."""
+        preset = Preset(name="test", description="Test", modes=[])
+        config = ReviewConfig(
+            check_prompt="Check.",
+            filter_prompt="Filter.",
+            scope_globs=["*.md", "docs/**"],
+        )
+
+        result = build_review_prompt(preset, config)
+
+        assert "**Files in scope:**" in result
+        assert "`*.md`" in result
+        assert "`docs/**`" in result
+
+    def test_scope_globs_omitted_when_none(self):
+        """No scope section when scope_globs is None."""
+        preset = Preset(name="test", description="Test", modes=[])
+        config = ReviewConfig(check_prompt="Check.", filter_prompt="Filter.")
+
+        result = build_review_prompt(preset, config)
+
+        assert "**Files in scope:**" not in result
+
+    def test_scope_globs_omitted_when_empty(self):
+        """No scope section when scope_globs is empty list."""
+        preset = Preset(name="test", description="Test", modes=[])
+        config = ReviewConfig(check_prompt="Check.", filter_prompt="Filter.", scope_globs=[])
+
+        result = build_review_prompt(preset, config)
+
+        assert "**Files in scope:**" not in result
+
 
 class TestBuildReviewPromptIntegration:
     """Integration tests using realistic config values."""

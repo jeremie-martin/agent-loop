@@ -31,7 +31,16 @@ def main() -> None:
 @click.option("-v", "--verbose", count=True, help="Increase verbosity (-v for debug, -vv for trace with prompts)")
 @click.option("--no-squash", is_flag=True, help="Don't squash commits on stop")
 @click.option("-n", "--max-iterations", type=int, help="Maximum number of iterations to run")
-def run(preset_name: str | None, config: Path | None, dry_run: bool, verbose: int, no_squash: bool, max_iterations: int | None) -> None:
+@click.option("--max-failures", type=int, help="Stop after N consecutive agent failures")
+def run(
+    preset_name: str | None,
+    config: Path | None,
+    dry_run: bool,
+    verbose: int,
+    no_squash: bool,
+    max_iterations: int | None,
+    max_failures: int | None,
+) -> None:
     """Run an agent loop with the specified preset.
 
     PRESET_NAME is the name of a built-in preset (use 'agent-loop list' to see available presets).
@@ -61,7 +70,7 @@ def run(preset_name: str | None, config: Path | None, dry_run: bool, verbose: in
     log_file = configure_logging(verbose, preset_name=preset.name)
     click.echo(f"Log file: {log_file}")
 
-    run_loop(preset, dry_run=dry_run, auto_squash=not no_squash, max_iterations=max_iterations)
+    run_loop(preset, dry_run=dry_run, auto_squash=not no_squash, max_iterations=max_iterations, max_consecutive_failures=max_failures)
 
 
 @main.command("list")

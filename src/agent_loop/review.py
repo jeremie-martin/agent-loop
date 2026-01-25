@@ -27,6 +27,12 @@ def build_review_prompt(preset: Preset, config: ReviewConfig) -> str:
     parts.append("If there are unrelated modified files, ignore them—do not include them in your review or commit.")
     parts.append("")
 
+    # Scope globs (optional guidance)
+    if config.scope_globs:
+        globs = ", ".join(f"`{g}`" for g in config.scope_globs)
+        parts.append(f"**Files in scope:** Only review files matching: {globs}")
+        parts.append("")
+
     # Review instructions
     if config.check_prompt:
         parts.append("**Review scope:**")
@@ -74,4 +80,4 @@ def run_review_cycle(preset: Preset, config: ReviewConfig, dry_run: bool = False
     prompt = build_review_prompt(preset, config)
     logger.debug(f"Built review prompt ({len(prompt)} chars)")
 
-    return run_opencode(prompt=prompt, dry_run=dry_run)
+    return run_opencode(prompt=prompt, dry_run=dry_run, model=preset.model)

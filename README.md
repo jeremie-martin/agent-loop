@@ -13,7 +13,7 @@ Useful for iterative document review, code refactoring, or any task where you wa
 ## Requirements
 
 - `opencode` installed and in your PATH
-- Uses model `zai-coding-plan/glm-4.7` (currently not configurable)
+- Default model: `zai-coding-plan/glm-4.7` (configurable per-preset via `model` field)
 
 ## Installation
 
@@ -66,6 +66,7 @@ Simple example:
 ```yaml
 name: my-review
 description: Review files for quality
+model: zai-coding-plan/glm-4.7  # optional, uses default if omitted
 
 prompt_suffix: |
   Do not commit changes - they will be reviewed and committed at the end of the cycle.
@@ -85,6 +86,7 @@ modes:
 # Run a review agent after each complete cycle (commits the accumulated changes)
 review:
   enabled: true
+  scope_globs: ["*.md", "docs/**"]  # optional guidance for review scope
   check_prompt: |
     Verify that changes are correct and consistent.
   filter_prompt: |
@@ -112,6 +114,7 @@ Built-in presets include accessibility, api-docs, code-refactor, dead-code, depe
 - `-v`: Increase verbosity (use `-v` for debug info, `-vv` for full prompts)
 - `--no-squash`: Don't squash commits when stopping
 - `-n, --max-iterations`: Maximum number of iterations to run
+- `--max-failures`: Stop after N consecutive agent failures (safety net for broken prompts or rate limits)
 
 ### Verbosity levels
 
