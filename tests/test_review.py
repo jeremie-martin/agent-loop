@@ -91,28 +91,22 @@ class TestBuildReviewPrompt:
 
         assert "actionable issues" in result.lower()
 
-    def test_empty_check_prompt_omits_section(self):
-        """Empty check_prompt omits the Review scope section."""
+    def test_empty_prompt_omits_section(self):
+        """Empty check_prompt or filter_prompt omits corresponding section."""
         preset = Preset(name="test", description="Test", modes=[])
+
         config = ReviewConfig(check_prompt="", filter_prompt="Filter.")
-
         result = build_review_prompt(preset, config)
-
         assert "**Review scope:**" not in result
         assert "**Before acting, filter your feedback:**" in result
 
-    def test_empty_filter_prompt_omits_section(self):
-        """Empty filter_prompt omits the filter section."""
-        preset = Preset(name="test", description="Test", modes=[])
         config = ReviewConfig(check_prompt="Check.", filter_prompt="")
-
         result = build_review_prompt(preset, config)
-
         assert "**Review scope:**" in result
         assert "**Before acting, filter your feedback:**" not in result
 
     def test_scope_globs_included_in_prompt(self):
-        """scope_globs interpolated into prompt."""
+        """scope_globs interpolated into prompt when provided."""
         preset = Preset(name="test", description="Test", modes=[])
         config = ReviewConfig(
             check_prompt="Check.",
@@ -126,22 +120,16 @@ class TestBuildReviewPrompt:
         assert "`*.md`" in result
         assert "`docs/**`" in result
 
-    def test_scope_globs_omitted_when_none(self):
-        """No scope section when scope_globs is None."""
+    def test_scope_globs_omitted_when_empty_or_none(self):
+        """No scope section when scope_globs is None or empty list."""
         preset = Preset(name="test", description="Test", modes=[])
         config = ReviewConfig(check_prompt="Check.", filter_prompt="Filter.")
 
         result = build_review_prompt(preset, config)
-
         assert "**Files in scope:**" not in result
 
-    def test_scope_globs_omitted_when_empty(self):
-        """No scope section when scope_globs is empty list."""
-        preset = Preset(name="test", description="Test", modes=[])
         config = ReviewConfig(check_prompt="Check.", filter_prompt="Filter.", scope_globs=[])
-
         result = build_review_prompt(preset, config)
-
         assert "**Files in scope:**" not in result
 
 

@@ -213,13 +213,18 @@ class TestReviewConfig:
         assert preset.review.fix_prompt == "Custom fix instructions."
 
 
-class TestModelField:
-    """Tests for the model field in Preset."""
+class TestOptionalFields:
+    """Tests for optional fields that default to None and load from YAML."""
 
     def test_model_defaults_to_none(self):
         """Model defaults to None when not specified."""
         preset = Preset(name="test", description="", modes=[])
         assert preset.model is None
+
+    def test_scope_globs_defaults_to_none(self):
+        """scope_globs defaults to None."""
+        config = ReviewConfig()
+        assert config.scope_globs is None
 
     def test_model_loaded_from_yaml(self, tmp_path: Path):
         """Model field loaded from YAML."""
@@ -236,30 +241,6 @@ class TestModelField:
         preset = load_preset(preset_file)
 
         assert preset.model == "custom-model-v1"
-
-    def test_model_optional_in_yaml(self, tmp_path: Path):
-        """Model is None when not specified in YAML."""
-        yaml_content = dedent("""
-            name: minimal
-            modes:
-              - name: review
-                prompt: Review.
-        """)
-        preset_file = tmp_path / "minimal.yaml"
-        preset_file.write_text(yaml_content)
-
-        preset = load_preset(preset_file)
-
-        assert preset.model is None
-
-
-class TestScopeGlobs:
-    """Tests for scope_globs in ReviewConfig."""
-
-    def test_scope_globs_defaults_to_none(self):
-        """scope_globs defaults to None."""
-        config = ReviewConfig()
-        assert config.scope_globs is None
 
     def test_scope_globs_loaded_from_yaml(self, tmp_path: Path):
         """scope_globs loaded from YAML."""
@@ -282,6 +263,21 @@ class TestScopeGlobs:
 
         assert preset.review is not None
         assert preset.review.scope_globs == ["*.md", "docs/**"]
+
+    def test_model_optional_in_yaml(self, tmp_path: Path):
+        """Model is None when not specified in YAML."""
+        yaml_content = dedent("""
+            name: minimal
+            modes:
+              - name: review
+                prompt: Review.
+        """)
+        preset_file = tmp_path / "minimal.yaml"
+        preset_file.write_text(yaml_content)
+
+        preset = load_preset(preset_file)
+
+        assert preset.model is None
 
     def test_scope_globs_optional(self, tmp_path: Path):
         """scope_globs is None when not specified."""
