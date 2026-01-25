@@ -5,7 +5,11 @@ prompt_prefix: |
   FIRST: Find and read all markdown documentation in this project before doing anything else.
   Search for and read: README files (root and subdirectories), CLAUDE.md, AGENTS.md, and all
   files in docs/ or documentation/ directories. Understand the codebase's patterns, conventions,
-  and architecture. Only then proceed with your task. Sub-agents you spawn must do the same.
+  and architecture. Only then proceed with your task.
+
+  When spawning sub-agents, explicitly instruct each one to first read all project
+  documentation (README files, CLAUDE.md, AGENTS.md, docs/ and documentation/ directories)
+  before starting its task.
 
 prompt_suffix: |
   Do not use the "question" tool or any tool requiring user input.
