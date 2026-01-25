@@ -13,51 +13,53 @@ prompt_suffix: |
 modes:
   - name: accuracy
     prompt: |
-      Before reviewing the documentation, explore the codebase to build a clear picture of what the project actually does—its architecture, key concepts, public interfaces, and intended workflows.
-
-      Then assess the documentation against that reality. Good documentation earns trust by being accurate: what it describes exists, what exists is described where readers would look for it, and the two don't drift apart.
+      Review the documentation for factual accuracy against the actual codebase.
 
       For each documentation file, identify factual claims about:
       - API signatures, parameters, return types
       - Behavior descriptions ("when X happens, Y occurs")
       - Configuration options and their effects
 
-      For each claim, locate the corresponding source code. If you cannot find code that supports a claim, flag it for removal or correction.
+      For each claim, locate the corresponding source code. If you cannot find code that supports a claim, flag it for removal or correction. If terminology doesn't match what the code uses, update it.
 
-      Does this reflect the current state of the project? Are there claims that have gone stale, or capabilities that exist but aren't surfaced? Does terminology match what the code actually calls things?
+      Fix inaccuracies as you find them. Don't just note them—correct them.
 
   - name: structure
     prompt: |
-      Consider the documentation as a whole—not the accuracy of individual files, but how they work together as a system readers navigate.
+      Review how the documentation files work together as a navigable system.
 
-      Good documentation suites have shape: a reader knows where to start, how to go deeper, and where to look things up. Each document has a clear job. There's one natural place for any given concept, not three partial explanations scattered across files.
-
-      Read through the documentation and ask: Is there a clear entry point? Do documents link to each other in ways that guide readers, or do they exist in isolation? Are there files that overlap significantly, or gaps where readers would reasonably expect something? Does the organization reflect how people actually approach the project?
+      Read through the documentation and assess: Is there a clear entry point? Do documents link to each other in ways that guide readers? Are there files that overlap significantly, or gaps where readers would expect something?
 
       If restructuring, consolidating, or reshaping would improve navigability, apply those changes. But preserve what already works—don't reorganize documentation that readers can already find their way through.
 
   - name: clarity
     prompt: |
-      Review each documentation file for how well it communicates—not whether it's accurate (assume it is), but whether a reader can absorb what it's trying to convey.
+      Review each documentation file for how well it communicates.
 
-      Clear documentation respects the reader's time: sentences do work, paragraphs have focus, sections don't meander. It uses consistent terminology and speaks in one voice. It anticipates what readers need to know at each point without over-explaining what's already clear from context.
+      Clear documentation respects the reader's time: sentences do work, paragraphs have focus, sections don't meander. It uses consistent terminology and speaks in one voice.
 
-      For each file, consider: Does this read well? Are there passages that could be tightened without losing meaning? Is the level of detail appropriate for who's reading this and why? Does the structure help or hinder understanding?
+      For each file: Does this read well? Are there passages that could be tightened without losing meaning? Is the level of detail appropriate?
 
       Make edits that improve clarity or tighten prose. Leave alone anything that already communicates effectively—editing for the sake of editing adds churn without value.
 
 review:
   enabled: true
   check_prompt: |
+    Review only the documentation changes (markdown files, README, docs/).
+    Ignore any unrelated files that may appear in git diff.
+
     For each modified doc file, verify:
     1. All factual claims are supported by current source code
-    2. No content was removed that was actually accurate
+    2. No accurate content was incorrectly removed
     3. Terminology matches what the code uses
-    Spawn sub-agents to read source files and cross-check if needed.
+
+    Read the relevant source files to cross-check claims.
 
   filter_prompt: |
     Filter out:
     - Stylistic preferences that don't affect accuracy
-    - Suggestions to add content beyond current scope
+    - Suggestions to add content beyond the current scope
     - Warnings about things that are actually correct
-    Only act on genuine accuracy issues.
+    - Concerns about files unrelated to documentation
+
+    Only act on genuine accuracy issues in the documentation.

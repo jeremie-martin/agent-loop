@@ -27,7 +27,7 @@ class TestBuildReviewPrompt:
 
         result = build_review_prompt(preset, config)
 
-        assert "**Review:**" in result
+        assert "**Review scope:**" in result
         assert "Verify all claims." in result
 
     def test_includes_filter_prompt(self):
@@ -48,7 +48,26 @@ class TestBuildReviewPrompt:
         result = build_review_prompt(preset, config)
 
         assert "**Commit:**" in result
-        assert "single commit" in result
+        assert "commit message" in result
+
+    def test_handles_no_changes(self):
+        """Prompt handles case where there are no changes."""
+        preset = Preset(name="test", description="Test", modes=[])
+        config = ReviewConfig()
+
+        result = build_review_prompt(preset, config)
+
+        assert "no changes to commit" in result.lower()
+
+    def test_scopes_to_relevant_files(self):
+        """Prompt tells agent to ignore unrelated files."""
+        preset = Preset(name="test", description="Test", modes=[])
+        config = ReviewConfig()
+
+        result = build_review_prompt(preset, config)
+
+        assert "unrelated" in result.lower()
+        assert "ignore" in result.lower()
 
     def test_uses_custom_fix_prompt(self):
         """Custom fix_prompt replaces default fix instructions."""
@@ -62,7 +81,6 @@ class TestBuildReviewPrompt:
         result = build_review_prompt(preset, config)
 
         assert "Custom fix: do this specific thing." in result
-        assert "spawn sub-agents" not in result.lower()
 
     def test_default_fix_prompt(self):
         """Default fix instructions used when fix_prompt not specified."""
@@ -72,16 +90,15 @@ class TestBuildReviewPrompt:
         result = build_review_prompt(preset, config)
 
         assert "actionable issues" in result.lower()
-        assert "sub-agents" in result.lower()
 
     def test_empty_check_prompt_omits_section(self):
-        """Empty check_prompt omits the Review section."""
+        """Empty check_prompt omits the Review scope section."""
         preset = Preset(name="test", description="Test", modes=[])
         config = ReviewConfig(check_prompt="", filter_prompt="Filter.")
 
         result = build_review_prompt(preset, config)
 
-        assert "**Review:**" not in result
+        assert "**Review scope:**" not in result
         assert "**Before acting, filter your feedback:**" in result
 
     def test_empty_filter_prompt_omits_section(self):
@@ -91,7 +108,7 @@ class TestBuildReviewPrompt:
 
         result = build_review_prompt(preset, config)
 
-        assert "**Review:**" in result
+        assert "**Review scope:**" in result
         assert "**Before acting, filter your feedback:**" not in result
 
 
@@ -123,7 +140,7 @@ class TestBuildReviewPromptIntegration:
 
         # Verify structure
         assert "Task:" in result
-        assert "**Review:**" in result
+        assert "**Review scope:**" in result
         assert "**Before acting, filter your feedback:**" in result
         assert "**Fix:**" in result
         assert "**Commit:**" in result

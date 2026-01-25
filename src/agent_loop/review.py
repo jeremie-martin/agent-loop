@@ -10,24 +10,26 @@ def build_review_prompt(preset: Preset, config: ReviewConfig) -> str:
     """Build a self-contained review prompt from preset and config.
 
     The prompt includes all context needed for the agent to:
-    1. Understand the task
-    2. Review uncommitted changes
+    1. Understand the task scope
+    2. Review only relevant changes
     3. Filter feedback to avoid false positives
     4. Fix genuine issues
     5. Commit with a meaningful message
     """
     parts = []
 
-    # Task context
+    # Task context and scope
     parts.append(f"Task: {preset.description}")
     parts.append("")
-    parts.append("A cycle of work has been completed. Review the uncommitted changes and finalize them.")
-    parts.append("Use `git diff` to see what was changed.")
+    parts.append("A cycle of work has been completed. Review and finalize the changes.")
+    parts.append("")
+    parts.append("Use `git diff` to see what was changed. Focus only on changes related to the task above.")
+    parts.append("If there are unrelated modified files, ignore them—do not include them in your review or commit.")
     parts.append("")
 
     # Review instructions
     if config.check_prompt:
-        parts.append("**Review:**")
+        parts.append("**Review scope:**")
         parts.append(config.check_prompt.strip())
         parts.append("")
 
@@ -43,12 +45,13 @@ def build_review_prompt(preset: Preset, config: ReviewConfig) -> str:
         parts.append(config.fix_prompt.strip())
     else:
         parts.append("If actionable issues remain after filtering, fix them.")
-        parts.append("You may spawn sub-agents to help with specific fixes.")
     parts.append("")
 
     # Commit instructions
     parts.append("**Commit:**")
-    parts.append("Create a single commit with a clear message summarizing what was done.")
+    parts.append("Stage and commit only the files related to the task.")
+    parts.append("Use a clear commit message summarizing what was accomplished.")
+    parts.append("If there are no changes to commit (nothing relevant was modified), do nothing.")
 
     return "\n".join(parts)
 

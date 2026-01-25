@@ -8,52 +8,44 @@ prompt_suffix: |
   Only modify the actual source files (CSS, SCSS, JS, TSX, etc.).
 
 modes:
-  - name: inventory
-    prompt: |
-      A coherent visual system starts with understanding the current state. Before centralizing anything, map where visual decisions currently live.
-
-      Explore the frontend codebase—CSS files, style blocks, inline styles, component styles, theme files, utility classes. Spawn sub-agents to examine different areas if the codebase is large.
-
-      Build a picture of: Where are colors defined? How many different spacing values exist? Are typography choices systematic or ad-hoc? What naming conventions are in use? Where do breakpoints live? Are there multiple sources of truth that might conflict?
-
   - name: centralization
     prompt: |
       Visual decisions should live in one place. When "primary blue" is defined once, changing it changes everything—and everything stays in sync.
 
-      Based on the inventory, establish (or strengthen) a centralized system. This might mean: CSS custom properties for colors/spacing/typography, a design tokens file, a theme configuration, or whatever pattern fits the project.
+      First, explore the frontend codebase to understand the current state: CSS files, style blocks, inline styles, component styles, theme files, utility classes. Note where colors, spacing, and typography values are defined.
 
-      Create the central definitions. Extract hardcoded values into named tokens. Colors become `--color-primary`, not `#3b82f6`. Spacing becomes `--space-4`, not `16px`. Font sizes follow a scale. Shadows, radii, transitions—anything that repeats—gets a name and a home.
+      Then establish (or strengthen) a centralized token system. This might mean: CSS custom properties, a design tokens file, a theme configuration, or whatever pattern fits the project.
 
-      Don't try to centralize everything at once. Start with the highest-impact decisions: colors, spacing scale, typography scale. Leave edge cases for later.
+      Create the central definitions. Colors become `--color-primary`, not `#3b82f6`. Spacing becomes `--space-4`, not `16px`. Font sizes follow a scale.
+
+      Start with the highest-impact decisions: colors, spacing scale, typography scale. Leave edge cases for later.
 
   - name: adoption
     prompt: |
       A design system only works if the codebase uses it. Centralized tokens that nobody references are just documentation.
 
-      Work through replacements systematically by category:
-      1. First pass: colors only (all color values to color tokens)
-      2. Second pass: spacing only (margins, padding to spacing tokens)
-      3. Third pass: typography only (font sizes, weights to type tokens)
+      First, locate the token definitions (CSS custom properties, theme file, or design tokens). Read them to understand what tokens are available.
 
-      Complete and verify each category before moving to the next.
+      Then sweep through the codebase replacing hardcoded values with their token equivalents:
+      - Colors: `#3b82f6` becomes `var(--color-primary)`
+      - Spacing: `margin: 16px` becomes `margin: var(--space-4)`
+      - Typography: `font-size: 14px` becomes the appropriate typography token
 
-      Sweep through the codebase replacing hardcoded values with their token equivalents. `#3b82f6` becomes `var(--color-primary)`. `margin: 16px` becomes `margin: var(--space-4)`. `font-size: 14px` becomes the appropriate typography token.
+      Work systematically by category (colors first, then spacing, then typography) to maintain consistency.
 
-      Spawn sub-agents to handle different areas—one for color adoption, one for spacing, one for typography—if the codebase is large.
-
-      When you find values that don't match any token, decide: Should this be a new token (if it represents a meaningful decision)? Or should it use an existing token (if it's just a slight variation that should be consolidated)?
+      When you find values that don't match any token, decide: Should this be a new token (if it represents a meaningful decision)? Or should it use an existing token (if it's just a slight variation)?
 
       After making replacements in each file:
       1. Verify the file still parses (no syntax errors)
       2. Check that all referenced tokens are defined
-      3. If using a build system, run it to catch compilation errors
 
       If you introduce errors, fix them before moving to the next file.
-      Do not leave files in a broken state.
 
   - name: coherence
     prompt: |
-      Review the centralized system as a whole. Does the spacing scale have consistent ratios? Does the color palette work together? Are there tokens that exist but don't fit the system's logic? Are naming conventions consistent and predictable?
+      Review the token system for internal consistency.
+
+      Read the token definitions file(s) and assess: Does the spacing scale have consistent ratios? Does the color palette work together? Are naming conventions consistent and predictable?
 
       Look for: orphan values that don't fit the scale, inconsistent naming (is it `--color-gray-500` or `--color-medium-gray`?), missing steps in scales, tokens that duplicate each other semantically.
 
@@ -62,15 +54,21 @@ modes:
 review:
   enabled: true
   check_prompt: |
-    Verify the styling changes:
-    1. Are all token references valid (tokens exist and are defined)?
-    2. Are replacements consistent (same value maps to same token everywhere)?
-    3. Do any files have CSS syntax errors?
-    If a build/lint command exists (check package.json), run it.
+    Review only the styling-related changes (CSS, SCSS, style files, token definitions).
+    Ignore any unrelated files that may appear in git diff.
+
+    For the relevant changes, verify:
+    1. All token references are valid (the tokens exist and are defined)
+    2. Replacements are consistent (same hardcoded value maps to same token)
+    3. No CSS syntax errors were introduced
+
+    If a build/lint command exists (check package.json scripts), run it.
 
   filter_prompt: |
     Filter out:
-    - Suggestions to add new tokens (out of scope)
-    - Style opinions about token naming
+    - Suggestions to add new tokens (out of scope for this cycle)
+    - Style opinions about token naming conventions
     - Warnings about values intentionally left as literals
-    Only act on actual breakages or inconsistencies.
+    - Concerns about files unrelated to styling
+
+    Only act on actual breakages or inconsistencies in the styling work.
