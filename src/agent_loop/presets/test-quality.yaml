@@ -5,6 +5,10 @@ prompt_suffix: |
   Do not commit changes - they will be reviewed and committed at the end of the cycle.
   Do not use the "question" tool or any tool requiring user input.
 
+  CRITICAL: If a test that was passing before your changes now fails, you introduced a regression.
+  Fix your refactoring—do not change the test's assertions to make it pass. The test's
+  expectations were correct; your changes broke something.
+
 modes:
   - name: clarity
     prompt: |
@@ -65,5 +69,9 @@ review:
     - Suggestions to add new test cases (out of scope)
     - Opinions about testing frameworks or libraries
     - Concerns about non-test files
+
+    CRITICAL: If any previously-passing test now fails, this is a regression. The fix must
+    restore the test's original behavior, not change its assertions. Existing test expectations
+    are trusted; changes that break them are wrong.
 
     Only act on actual test breakages or regressions.

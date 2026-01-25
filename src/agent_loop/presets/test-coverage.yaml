@@ -11,6 +11,18 @@ prompt_suffix: |
   Do not use the "question" tool or any tool requiring user input.
   If you find no meaningful gaps, make no changes. "No new tests needed" is a valid outcome.
 
+  CRITICAL - When a test you write fails:
+  1. First check: Is your test wrong? (wrong assertion, bad setup, misunderstood API)
+     → If yes, fix your test.
+  2. If your test logic is correct, you may have found a bug in the implementation.
+     → Do NOT "fix" your test to match broken behavior.
+     → Do NOT delete the test.
+     → Mark it as skipped with a clear reason: @pytest.mark.skip(reason="Reveals bug: [description]")
+     → This preserves the test as documentation while not breaking CI.
+
+  Never weaken or delete a correct test just because it fails. A failing test that catches
+  a real bug is valuable—it just needs the implementation fixed, not the test.
+
 modes:
   - name: gaps
     prompt: |
@@ -31,7 +43,9 @@ modes:
       Pick the single highest-priority gap. Write tests for that one area only.
       One well-tested critical path per iteration, not broad shallow coverage.
 
-      After writing tests, run them to confirm they pass.
+      After writing tests, run them. If a test fails, determine whether your test is wrong
+      or you've found an implementation bug. Fix incorrect tests; mark bug-revealing tests
+      as skipped with a clear reason (don't delete them).
 
   - name: edges
     prompt: |
@@ -51,7 +65,8 @@ modes:
       catch real bugs. Skip edge cases that test language semantics (Python already
       handles empty lists correctly).
 
-      Run tests after adding them.
+      Run tests after adding them. If an edge case test fails, verify whether you found
+      a real bug or wrote the test wrong. Mark genuine bugs as skipped; fix test mistakes.
 
   - name: consolidation
     prompt: |
@@ -101,5 +116,9 @@ review:
     - Tests that check implementation details rather than behavior
     - Tests where the setup is more complex than the code being tested
 
-    Be aggressive. A test that doesn't catch bugs is maintenance burden.
-    Only keep tests that would catch real problems.
+    CRITICAL: If a skipped test is marked as revealing a bug, do NOT delete it or remove
+    the skip. That test is documentation of a known issue. Only remove skipped tests if
+    the skip reason is invalid (the "bug" was actually a test mistake).
+
+    Be aggressive about removing low-value tests. But respect tests that catch real issues,
+    even if they're currently skipped.

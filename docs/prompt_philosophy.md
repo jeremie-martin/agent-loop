@@ -122,6 +122,22 @@ Removing something—a redundant test, a duplicate paragraph, a near-duplicate t
 
 Without this framing, agents default to additive behavior. Explicit deletion language gives permission to subtract.
 
+## 17. Failing tests: trust asymmetry
+
+When a test fails, there are two possibilities: the test is wrong, or the implementation is wrong. Agents are biased toward making things pass, which can mask real bugs.
+
+**Asymmetric trust rules:**
+- Tests that *existed before* this iteration are trusted. If they fail after your changes, you broke something—fix your changes, not the test.
+- Tests you *just wrote* are suspect. If they fail, investigate: fix your test if it's wrong, but if you found a real bug, don't delete or weaken the test.
+
+**For new tests that reveal bugs:**
+- Don't delete the test (loses bug detection)
+- Don't change assertions to match broken behavior (masks the bug)
+- Mark as skipped with a clear reason: `@pytest.mark.skip(reason="Reveals bug: ...")`
+- This preserves the test as documentation while not breaking CI
+
+The principle: never make a test pass by changing what it expects. Make it pass by fixing what's broken.
+
 ## Example in practice
 
 The built-in `docs-review` preset demonstrates these principles with three modes (accuracy, structure, clarity) plus a review phase. Each mode has a single focus, uses destination-focused language, and is fully self-contained. The review phase catches factual drift by cross-checking against source code.
