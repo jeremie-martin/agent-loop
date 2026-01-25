@@ -24,16 +24,12 @@ modes:
       Review the test suite for quality. Good tests read as specifications—they
       communicate what the code should do, not just that it runs.
 
-      Examine the tests:
-      - Do test names describe the behavior being verified?
-      - Are tests isolated? (no hidden dependencies between tests)
-      - Do assertions check meaningful things? (not just "no exception thrown")
-      - Is setup/teardown clear and minimal?
+      A reader should understand the tested behavior from the test alone, without
+      studying implementation details. Tests should be independent—running them in
+      any order produces the same result.
 
-      Refactor tests that are unclear, coupled, or asserting the wrong things.
-      Delete tests that are redundant or test nothing meaningful.
-
-      Leave alone tests that already communicate well.
+      Refactor tests that are unclear or coupled. Delete tests that are redundant
+      or verify nothing meaningful. Leave alone tests that already communicate well.
 
       **After completing your changes**, orchestrate verification:
 
@@ -53,13 +49,8 @@ modes:
       Ensure the test suite doesn't explode in size or redundancy.
 
       Test suites grow. Each feature adds tests. Without counter-pressure, you
-      end up with many tests that overlap, verify the same behavior differently,
-      or exist for historical reasons no longer relevant.
-
-      Review the test suite holistically:
-      - Are there tests that check the same behavior? Consolidate.
-      - Are there tests for code that no longer exists? Remove.
-      - Are there overly granular tests that could be combined? Merge.
+      end up with overlapping tests, tests for code that no longer exists, or
+      overly granular tests that could be one.
 
       Fewer, better tests. Deleting a redundant test is as valuable as adding
       a missing one.

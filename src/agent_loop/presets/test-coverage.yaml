@@ -36,20 +36,9 @@ modes:
       better tests are better. A small suite that covers critical paths beats a
       large suite that tests trivia.
 
-      Survey the codebase to understand:
-      - What code paths handle user input, external data, or money?
-      - What logic has complex branching or edge cases?
-      - What has broken before (check git history for bug fixes)?
-
-      Compare against the existing test suite. What critical behaviors lack tests?
-
-      Prioritize ruthlessly by:
-      1. Blast radius if broken (user-facing > internal, data loss > cosmetic)
-      2. Complexity (tricky logic > straightforward CRUD)
-      3. Change frequency (often-modified code > stable code)
-
-      Pick the highest-priority gaps. Write tests that would catch real bugs—
-      including edge cases (zero, one, many; empty input; boundaries).
+      Focus on code where bugs would hurt most: user-facing features, data handling,
+      complex logic, and code that has broken before. Write tests that would actually
+      catch bugs, including edge cases.
 
       After writing tests, run them. If a test fails, determine whether your test
       is wrong or you've found an implementation bug. Fix incorrect tests; mark
@@ -74,16 +63,9 @@ modes:
     prompt: |
       Ensure the test suite remains lean and focused.
 
-      A lean test suite runs faster and fails more clearly. Review for:
-      - Tests that verify the same behavior in different words
-      - Tests that would fail together (if one fails, the other always fails too)
-      - Tests that check implementation details rather than behavior
-      - Tests with excessive setup that obscures what's being tested
-
-      Consolidate where possible:
-      - Merge tests that check the same behavior
-      - Delete tests that duplicate others
-      - Simplify tests with clearer assertions
+      A lean test suite runs faster and fails more clearly. Look for tests that
+      overlap, tests that check implementation details rather than behavior, and
+      tests with excessive setup that obscures what's being tested.
 
       Fewer, better tests. Deleting a redundant test is as valuable as adding
       a missing one.
