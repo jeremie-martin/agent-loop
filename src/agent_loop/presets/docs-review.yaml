@@ -1,66 +1,64 @@
 name: docs-review
-description: Review documentation for quality, accuracy, and coherence
-model: zai-coding-plan/glm-4.7
-
-prompt_prefix: |
-  Before editing any documentation file, first read the corresponding source code
-  to verify current behavior. Cite specific code locations for any factual claims
-  you add or modify.
+description: Documentation review with self-orchestrated verification
 
 prompt_suffix: |
-  Do not commit changes - they will be reviewed and committed at the end of the cycle.
   Do not use the "question" tool or any tool requiring user input.
+  Stage and commit your changes at the end with a descriptive message.
 
 modes:
-  - name: accuracy
+  - name: quality
     prompt: |
-      Review the documentation for factual accuracy against the actual codebase.
+      Review and improve the documentation in this codebase.
 
-      For each documentation file, identify factual claims about:
-      - API signatures, parameters, return types
-      - Behavior descriptions ("when X happens, Y occurs")
-      - Configuration options and their effects
+      Good documentation is accurate, navigable, and clear. It respects readers' time,
+      uses consistent terminology, and doesn't repeat itself unnecessarily.
 
-      For each claim, locate the corresponding source code. If you cannot find code that supports a claim, flag it for removal or correction. If terminology doesn't match what the code uses, update it.
+      Before editing any documentation, read the corresponding source code to verify
+      current behavior.
 
-      Fix inaccuracies as you find them. Don't just note them—correct them.
+      Make improvements where you find:
+      - Claims that don't match the code
+      - Structure that's hard to navigate
+      - Prose that could be clearer or tighter
+      - Redundancy that adds no value
 
-  - name: structure
+      Leave alone what already works. "No changes needed" is a valid outcome.
+
+      **After completing your changes**, orchestrate a verification:
+
+      1. Spawn a sub-agent to review your work. Give it:
+         - This task description (documentation quality improvement)
+         - The files you modified
+         - Instruction to check: do changes match the goals? Anything missed?
+           Opportunities to simplify?
+
+      2. Spawn another sub-agent. Give it:
+         - This task description
+         - Your changes (via git diff)
+         - The full feedback from step 1
+         - Instruction to identify which feedback is genuinely applicable vs
+           over-defensive, speculative, or based on misunderstanding
+
+      3. Address only the filtered feedback from step 2. Make changes where
+         warranted, preserve the original scope. Do not commit until this step.
+
+  - name: coherence
     prompt: |
-      Review how the documentation files work together as a navigable system.
+      Ensure the documentation remains coherent and doesn't explode in scope.
 
-      Read through the documentation and assess: Is there a clear entry point? Do documents link to each other in ways that guide readers? Are there files that overlap significantly, or gaps where readers would expect something?
+      Documentation tends to grow. Each improvement adds a sentence, a section, a file.
+      Without counter-pressure, docs become bloated and hard to navigate.
 
-      If restructuring, consolidating, or reshaping would improve navigability, apply those changes. But preserve what already works—don't reorganize documentation that readers can already find their way through.
+      Review the documentation as a whole:
+      - Is there significant overlap between files? Consolidate.
+      - Are there sections that say the same thing differently? Pick one.
+      - Is the scope appropriate? Remove content that doesn't belong.
+      - Does the structure make sense? Reorganize if navigation is confusing.
 
-  - name: clarity
-    prompt: |
-      Review each documentation file for how well it communicates.
+      Deletion is value. Removing redundant content is as important as improving
+      what remains.
 
-      Clear documentation respects the reader's time: sentences do work, paragraphs have focus, sections don't meander. It uses consistent terminology and speaks in one voice.
-
-      For each file: Does this read well? Are there passages that could be tightened without losing meaning? Is the level of detail appropriate?
-
-      Make edits that improve clarity or tighten prose. Leave alone anything that already communicates effectively—editing for the sake of editing adds churn without value.
-
-review:
-  enabled: true
-  check_prompt: |
-    Review only the documentation changes (markdown files, README, docs/).
-    Ignore any unrelated files that may appear in git diff.
-
-    For each modified doc file, verify:
-    1. All factual claims are supported by current source code
-    2. No accurate content was incorrectly removed
-    3. Terminology matches what the code uses
-
-    Read the relevant source files to cross-check claims.
-
-  filter_prompt: |
-    Filter out:
-    - Stylistic preferences that don't affect accuracy
-    - Suggestions to add content beyond the current scope
-    - Warnings about things that are actually correct
-    - Concerns about files unrelated to documentation
-
-    Only act on genuine accuracy issues in the documentation.
+      **After completing your changes**, orchestrate the same verification:
+      1. Spawn verifier sub-agent with task context and your changes
+      2. Spawn filter sub-agent with verification feedback
+      3. Act only on filtered feedback, then commit

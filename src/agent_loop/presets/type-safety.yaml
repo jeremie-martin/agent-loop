@@ -1,75 +1,66 @@
 name: type-safety
-description: Add type annotations progressively, starting with public interfaces
-
-prompt_prefix: |
-  Focus on type annotations that help catch bugs and improve editor support.
-  Avoid over-complicated generic types that hurt readability.
+description: Add type annotations with self-orchestrated verification
 
 prompt_suffix: |
-  Do not commit changes - they will be reviewed and committed at the end of the cycle.
   Do not use the "question" tool or any tool requiring user input.
+  Stage and commit your changes at the end with a descriptive message.
 
 modes:
   - name: boundaries
     prompt: |
-      Public interfaces deserve type annotations. They're the contract between modules, and type checkers can verify callers use them correctly.
+      Type public interfaces thoroughly. These are the contracts between modules,
+      and type checkers can verify callers use them correctly.
 
-      Identify public functions, methods, and classes—anything that other modules import and use. For each:
+      Identify public functions, methods, and classes—anything other modules import
+      and use. For each:
       - Add parameter type annotations
       - Add explicit return type annotations
       - Document None returns as `-> None`
 
-      Start with the most-used interfaces. Skip internal helpers for now; they'll be addressed in the next phase.
-
-      After adding annotations, run the type checker to catch any errors introduced.
-
-  - name: internals
-    prompt: |
-      Internal code benefits from types where inference is ambiguous or where the type isn't obvious from context.
-
-      Review internal functions and local variables. Add annotations where:
+      For internal code, add annotations where:
       - The type isn't obvious from the assignment (e.g., empty containers)
       - Multiple types could be valid and you're specifying which
       - Complex expressions make the resulting type unclear
 
-      Don't annotate everything. `x: int = 5` adds noise. `result: dict[str, list[Event]] = {}` adds clarity.
+      Don't over-annotate. `x: int = 5` adds noise. `result: dict[str, list[Event]] = {}`
+      adds clarity.
 
-      Run the type checker after each file to catch issues early.
+      Review existing annotations for precision:
+      - Replace bare `list`, `dict`, `tuple` with parameterized versions
+      - Replace `Any` with specific types where the actual type is known
+      - Add `Optional` or `| None` where None is a valid value
 
-  - name: strictness
+      The goal is types that accurately describe what the code does, not maximally
+      strict types that fight the code.
+
+      Run the type checker after changes to catch errors.
+
+      **After completing your changes**, orchestrate verification:
+
+      1. Spawn a sub-agent to review your work. Give it:
+         - This task (type safety improvement)
+         - The files you modified
+         - Instruction to check: are annotations correct? Does the type checker pass?
+           Are there over-complicated generic types that hurt readability?
+
+      2. Spawn a filter sub-agent. Give it the verification feedback and ask:
+         which concerns are genuine vs stylistic preference?
+
+      3. Address filtered feedback, then commit.
+
+  - name: consistency
     prompt: |
-      Review existing annotations for precision and correctness.
+      Ensure type annotations are consistent across the codebase.
 
-      Look for:
-      - Bare `list`, `dict`, `tuple` without type parameters
-      - `Any` used where a specific type is known
-      - Missing `Optional` for values that can be None
+      Similar code should use similar types. Review for:
+      - Duplicate type definitions that could be consolidated
+      - Inconsistent naming (is it `UserId` or `UserID`?)
+      - Similar functions with different annotation styles
       - Places where type narrowing would help (isinstance checks, None guards)
 
-      Tighten loose types. Replace `Any` with specific types where the actual type is known. Add Optional where None is a valid value.
+      Consolidate type definitions. Create type aliases for complex types used in
+      multiple places. Ensure naming conventions are predictable.
 
-      The goal is types that accurately describe what the code does, not maximally strict types that fight the code.
+      Run the type checker after changes.
 
-review:
-  enabled: true
-  scope_globs:
-    - "src/**/*.py"
-    - "lib/**/*.py"
-  check_prompt: |
-    Review only the Python source files (not tests). Ignore unrelated files.
-
-    For each modified file, verify:
-    1. Type annotations are syntactically correct
-    2. The type checker passes (run mypy or pyright)
-    3. Annotations match actual runtime behavior
-
-    Run the project's type checker to confirm no errors were introduced.
-
-  filter_prompt: |
-    Filter out:
-    - Suggestions for more complex generic types
-    - Opinions about typing style (Union vs |, Optional vs | None)
-    - Requests to annotate test files (out of scope)
-    - Concerns about files outside the source directories
-
-    Only act on type errors or incorrect annotations.
+      **After your changes**, run the same verification pattern, then commit.

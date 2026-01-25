@@ -1,58 +1,60 @@
 name: api-consistency
-description: Make API endpoints predictable with uniform naming, responses, and validation
-
-prompt_prefix: |
-  Focus on consistency within this API. The goal is predictability—once someone
-  knows one endpoint, they can guess how others work.
+description: Make API endpoints predictable with self-orchestrated verification
 
 prompt_suffix: |
-  Do not commit changes - they will be reviewed and committed at the end of the cycle.
   Do not use the "question" tool or any tool requiring user input.
+  Stage and commit your changes at the end with a descriptive message.
 
 modes:
-  - name: naming
+  - name: contracts
     prompt: |
-      Consistent naming makes APIs predictable. When `/users` and `/posts` follow the same conventions, developers know what to expect from `/comments`.
+      Make APIs predictable. Once someone knows one endpoint, they should be able
+      to guess how others work.
 
-      Review API endpoint definitions:
+      Review API endpoint definitions for consistency:
+
+      **Naming:**
       - Do resources use plural nouns? (`/users`, not `/user`)
       - Are HTTP verbs used correctly? (GET reads, POST creates, PUT/PATCH updates, DELETE removes)
       - Is nesting consistent? (`/users/{id}/posts` vs `/posts?user_id=...`)
       - Do similar operations have similar URL patterns?
 
-      Where naming is inconsistent, align it with the dominant pattern in the API. Prefer changes that affect fewer endpoints.
-
-      Note any breaking changes that would require client updates—these may need versioning.
-
-  - name: responses
-    prompt: |
-      Consistent response shapes reduce surprises. When every endpoint returns data the same way, clients can handle responses generically.
-
-      Review API responses:
+      **Responses:**
       - Do success responses follow the same structure? (data wrapper, metadata location)
       - Are error responses uniform? (same fields, same HTTP status code meanings)
       - Is pagination handled consistently? (same query params, same response shape)
       - Are empty results handled the same way? (empty array vs null vs omitted)
 
-      Standardize response shapes. Pick the pattern used most often and apply it everywhere. Update response schemas/types to match.
-
-  - name: validation
-    prompt: |
-      Consistent validation makes APIs trustworthy. When validation rules are predictable, developers can build correct clients without trial and error.
-
-      Review input validation:
+      **Validation:**
       - Are required fields enforced consistently?
       - Do similar fields have similar validation? (email fields, dates, IDs)
       - Are validation errors structured the same way? (which field, what's wrong)
       - Is validation documented? (OpenAPI schemas, type hints)
 
-      Standardize validation patterns. Same rules for same field types. Same error shapes for validation failures. Update schemas to document constraints.
+      Where patterns are inconsistent, align with the dominant pattern. Prefer changes
+      that affect fewer endpoints. Note any breaking changes that would require client
+      updates—these may need versioning.
+
+      **After completing your changes**, orchestrate verification:
+
+      1. Spawn a sub-agent to review your work. Give it:
+         - This task (API consistency)
+         - The files you modified
+         - Instruction to check: do changes break existing contracts unintentionally?
+           Are response shapes valid? Is validation logic correct?
+
+      2. Spawn a filter sub-agent. Give it the verification feedback and ask:
+         which concerns are genuine breakages vs opinions about API design?
+
+      3. Address filtered feedback, then commit.
 
   - name: propagation
     prompt: |
       API changes must propagate—but only where necessary.
 
-      Check `git status` and `git diff` to see what API changes were made. Note the specific endpoints and what changed about each (renamed fields, new parameters, changed response shapes).
+      Check `git status` and `git diff` to see what API changes were made in this
+      cycle. Note the specific endpoints and what changed about each (renamed fields,
+      new parameters, changed response shapes).
 
       Three areas may need updates:
 
@@ -65,36 +67,16 @@ modes:
       - What specifically changed about each
       - Instruction to update only what's directly affected—no broader improvements
 
-      Each sub-agent should make minimal necessary changes. If an area has nothing to update, that's fine.
+      Each sub-agent should make minimal necessary changes. If an area has nothing
+      to update, that's fine.
 
       After all updates, run the full test suite. The measure of success is passing tests.
 
-review:
-  enabled: true
-  scope_globs:
-    - "**/routes/**"
-    - "**/api/**"
-    - "**/endpoints/**"
-    - "**/controllers/**"
-    - "**/views/**"
-    - "**/*schema*.py"
-    - "**/*schema*.ts"
-  check_prompt: |
-    Review only the API-related changes (routes, controllers, schemas).
-    Ignore unrelated files.
+      **After sub-agents complete**, orchestrate verification:
 
-    For each modification, verify:
-    1. Changes don't break existing API contracts unintentionally
-    2. Response shapes are valid (correct JSON structure, types)
-    3. Validation logic is correct (no false rejections or acceptances)
+      1. Spawn a sub-agent to review the combined changes. Check: are all callers
+         updated? Are tests passing? Any missed propagation points?
 
-    If API tests exist, run them to confirm endpoints still work.
+      2. Spawn a filter sub-agent. Identify which concerns are genuine vs over-cautious.
 
-  filter_prompt: |
-    Filter out:
-    - Suggestions for new endpoints or features
-    - Opinions about REST vs GraphQL or other paradigms
-    - Requests to change authentication/authorization
-    - Concerns about non-API code
-
-    Only act on API breakages or validation errors.
+      3. Address filtered feedback, then commit.

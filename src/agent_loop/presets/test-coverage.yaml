@@ -1,78 +1,70 @@
 name: test-coverage
-description: Add tests for untested critical paths—quality over quantity
-
-prompt_prefix: |
-  Tests exist to catch bugs and document behavior. More tests are not better—
-  better tests are better. A small suite that covers critical paths beats a
-  large suite that tests trivia.
+description: Add tests for untested critical paths with self-orchestrated verification
 
 prompt_suffix: |
-  Do not commit changes - they will be reviewed and committed at the end of the cycle.
   Do not use the "question" tool or any tool requiring user input.
-  If you find no meaningful gaps, make no changes. "No new tests needed" is a valid outcome.
+  Stage and commit your changes at the end with a descriptive message.
 
   CRITICAL - When a test you write fails:
   1. First check: Is your test wrong? (wrong assertion, bad setup, misunderstood API)
-     → If yes, fix your test.
+     -> If yes, fix your test.
   2. If your test logic is correct, you may have found a bug in the implementation.
-     → Do NOT "fix" your test to match broken behavior.
-     → Do NOT delete the test.
-     → Mark it as skipped with a clear reason: @pytest.mark.skip(reason="Reveals bug: [description]")
-     → This preserves the test as documentation while not breaking CI.
+     -> Do NOT "fix" your test to match broken behavior.
+     -> Do NOT delete the test.
+     -> Mark it as skipped with a clear reason: @pytest.mark.skip(reason="Reveals bug: [description]")
+     -> This preserves the test as documentation while not breaking CI.
 
   Never weaken or delete a correct test just because it fails. A failing test that catches
   a real bug is valuable—it just needs the implementation fixed, not the test.
 
 modes:
-  - name: gaps
+  - name: coverage
     prompt: |
-      Identify what's untested, but be selective about what matters.
+      Find meaningful gaps in test coverage and write tests that matter.
+
+      Tests exist to catch bugs and document behavior. More tests are not better—
+      better tests are better. A small suite that covers critical paths beats a
+      large suite that tests trivia.
 
       Survey the codebase to understand:
       - What code paths handle user input, external data, or money?
       - What logic has complex branching or edge cases?
       - What has broken before (check git history for bug fixes)?
 
-      Compare this against the existing test suite. What critical behaviors lack tests?
+      Compare against the existing test suite. What critical behaviors lack tests?
 
-      Prioritize ruthlessly. Rank gaps by:
+      Prioritize ruthlessly by:
       1. Blast radius if broken (user-facing > internal, data loss > cosmetic)
       2. Complexity (tricky logic > straightforward CRUD)
       3. Change frequency (often-modified code > stable code)
 
-      Pick the single highest-priority gap. Write tests for that one area only.
-      One well-tested critical path per iteration, not broad shallow coverage.
+      Pick the highest-priority gaps. Write tests that would catch real bugs—
+      including edge cases (zero, one, many; empty input; boundaries).
 
-      After writing tests, run them. If a test fails, determine whether your test is wrong
-      or you've found an implementation bug. Fix incorrect tests; mark bug-revealing tests
-      as skipped with a clear reason (don't delete them).
+      After writing tests, run them. If a test fails, determine whether your test
+      is wrong or you've found an implementation bug. Fix incorrect tests; mark
+      bug-revealing tests as skipped with a clear reason.
 
-  - name: edges
-    prompt: |
-      Edge cases reveal assumptions. Good tests probe boundaries.
+      "No new tests needed" is a valid outcome if the critical paths are covered.
 
-      Review the existing test suite. For tested functionality, ask:
-      - What happens at zero, one, many?
-      - What happens with empty input, null, missing fields?
-      - What happens at boundaries (max length, timeout, overflow)?
+      **After completing your changes**, orchestrate verification:
 
-      Don't add edge cases everywhere—focus on code where edge cases matter:
-      - Parsing and validation logic
-      - Numeric calculations
-      - State machines and transitions
+      1. Spawn a sub-agent to review your work. Give it:
+         - This task (test coverage improvement)
+         - The test files you created or modified
+         - Instruction to check: do tests cover meaningful behavior? Would they
+           catch real bugs? Are any redundant with existing tests?
 
-      Pick one area with weak edge case coverage. Add the edge cases that would
-      catch real bugs. Skip edge cases that test language semantics (Python already
-      handles empty lists correctly).
+      2. Spawn a filter sub-agent. Give it the verification feedback and ask:
+         which concerns are genuine vs over-cautious?
 
-      Run tests after adding them. If an edge case test fails, verify whether you found
-      a real bug or wrote the test wrong. Mark genuine bugs as skipped; fix test mistakes.
+      3. Address filtered feedback, then commit.
 
   - name: consolidation
     prompt: |
-      A lean test suite runs faster and fails more clearly.
+      Ensure the test suite remains lean and focused.
 
-      Review the test suite for redundancy:
+      A lean test suite runs faster and fails more clearly. Review for:
       - Tests that verify the same behavior in different words
       - Tests that would fail together (if one fails, the other always fails too)
       - Tests that check implementation details rather than behavior
@@ -83,42 +75,9 @@ modes:
       - Delete tests that duplicate others
       - Simplify tests with clearer assertions
 
-      The goal is fewer, better tests. Deleting a redundant test is as valuable
-      as adding a missing one.
+      Fewer, better tests. Deleting a redundant test is as valuable as adding
+      a missing one.
 
       Run the suite after consolidation to confirm nothing broke.
 
-review:
-  enabled: true
-  scope_globs:
-    - "**/test_*.py"
-    - "**/*_test.py"
-    - "**/tests/**/*.py"
-    - "**/*.test.ts"
-    - "**/*.spec.ts"
-    - "**/test/**"
-    - "**/__tests__/**"
-  check_prompt: |
-    Review only the test file changes. Ignore unrelated files.
-
-    For each new or modified test, verify:
-    1. The test actually runs and passes
-    2. The test would fail if the behavior it tests were broken
-    3. The test covers something not already covered elsewhere
-
-    Run the test suite to confirm all tests pass.
-
-  filter_prompt: |
-    Filter out tests that don't earn their keep:
-    - Tests that verify trivial behavior (getters, simple assignments)
-    - Tests that duplicate existing coverage
-    - Tests that are flaky or timing-dependent
-    - Tests that check implementation details rather than behavior
-    - Tests where the setup is more complex than the code being tested
-
-    CRITICAL: If a skipped test is marked as revealing a bug, do NOT delete it or remove
-    the skip. That test is documentation of a known issue. Only remove skipped tests if
-    the skip reason is invalid (the "bug" was actually a test mistake).
-
-    Be aggressive about removing low-value tests. But respect tests that catch real issues,
-    even if they're currently skipped.
+      **After your changes**, run the same verification pattern, then commit.

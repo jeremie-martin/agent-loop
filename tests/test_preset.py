@@ -321,26 +321,32 @@ class TestBuiltinPresets:
         preset = load_preset(path)
 
         assert preset.prompt_suffix is not None
-        # Iterations don't commit - review does
-        assert "Do not commit" in preset.prompt_suffix
+        # Each mode commits at the end after self-review
+        assert "commit" in preset.prompt_suffix.lower()
 
-    def test_docs_review_has_review_config(self):
-        """docs-review preset has review configuration."""
+    def test_docs_review_has_self_review(self):
+        """docs-review preset has self-orchestrated review in prompts."""
         path = find_preset("docs-review")
         preset = load_preset(path)
 
-        assert preset.review is not None
-        assert preset.review.enabled is True
-        assert "factual claims" in preset.review.check_prompt.lower()
+        # Self-review is embedded in prompts, not external review config
+        assert preset.review is None
+        # Verify self-review pattern is in the mode prompts
+        quality_mode = next(m for m in preset.modes if m.name == "quality")
+        assert "sub-agent" in quality_mode.prompt.lower()
+        assert "filter" in quality_mode.prompt.lower()
 
-    def test_frontend_style_has_review_config(self):
-        """frontend-style preset has review configuration."""
+    def test_frontend_style_has_self_review(self):
+        """frontend-style preset has self-orchestrated review in prompts."""
         path = find_preset("frontend-style")
         preset = load_preset(path)
 
-        assert preset.review is not None
-        assert preset.review.enabled is True
-        assert "token" in preset.review.check_prompt.lower()
+        # Self-review is embedded in prompts, not external review config
+        assert preset.review is None
+        # Verify self-review pattern is in the mode prompts
+        tokens_mode = next(m for m in preset.modes if m.name == "tokens")
+        assert "sub-agent" in tokens_mode.prompt.lower()
+        assert "filter" in tokens_mode.prompt.lower()
 
     def test_suffix_applied_to_all_modes(self):
         """Suffix appears in full prompt for every mode."""
