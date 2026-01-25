@@ -143,7 +143,9 @@ def init(name: str) -> None:
     template = f"""name: {name}
 description: Add your description here
 
-prompt_suffix: Commit any changes you make. Do not use the "question" tool or any tool requiring user input.
+prompt_suffix: |
+  Do not use the "question" tool or any tool requiring user input.
+  Stage and commit your changes at the end with a descriptive message.
 
 modes:
   - name: review

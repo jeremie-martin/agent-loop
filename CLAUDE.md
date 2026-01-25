@@ -2,8 +2,6 @@
 
 Guidance for Claude Code when working with this repository.
 
-*For project overview and usage, see the [README](README.md).*
-
 ## Development Commands
 
 ```bash
@@ -34,25 +32,24 @@ src/agent_loop/
 └── presets/        # Built-in preset YAML files
 ```
 
-## Key Files
-
-- `cli.py` - Entry point, command definitions
-- `loop.py` - Main iteration loop, mode cycling, review triggering, squash logic
-- `preset.py` - YAML parsing, Mode/Preset/ReviewConfig dataclasses
-- `review.py` - Review cycle prompt composition and execution
-- `runner.py` - Subprocess wrapper for opencode CLI
-- `git.py` - Commit and squash operations
-- `presets/*.yaml` - Built-in presets for various code and documentation review tasks
-
 ## Development Notes
 
 When making changes:
 - Test the full loop flow: preset loading → iteration → review → squash
 - Verify mode cycling wraps correctly (last mode → first mode → review)
-- Review cycles run after completing all modes, not after each iteration
+- Review cycles (if enabled in preset) run after completing all modes in a cycle
 - Agents commit their own changes via prompts (no framework auto-commit)
 - Ensure squash only squashes iteration commits, not unrelated changes
 
-## Writing Prompts
+### Test Handling
 
-For work on prompt-related tasks, see [docs/prompt_philosophy.md](docs/prompt_philosophy.md).
+When working with failing tests:
+
+**Asymmetric trust:**
+- Tests that existed before this iteration are trusted. If they fail after your changes, fix your changes, not the test.
+- Tests you just wrote are suspect. If they fail, investigate: fix the test if wrong, but don't delete or weaken tests that reveal real bugs.
+
+**For new tests that reveal bugs:**
+- Mark as skipped: `@pytest.mark.skip(reason="Reveals bug: ...")`
+- Preserves documentation without breaking CI
+- Never make a test pass by changing what it expects—fix what's broken instead

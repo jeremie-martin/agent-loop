@@ -4,38 +4,33 @@ CLI tool for running LLM agents in iterative refinement loops.
 
 ## What it does
 
-Runs LLM agents through iterative review passes, auto-committing changes after each iteration. When the loop stops (via Ctrl+C or reaching max iterations), it squashes all the iteration commits into one clean commit.
+Runs LLM agents through iterative modes with automatic commit squashing. Useful for iterative document review, code refactoring, or any task requiring incremental improvements through multiple perspectives.
 
 Must be run inside a git repository.
 
-Useful for iterative document review, code refactoring, or any task where you want an agent to make incremental improvements through multiple focused passes.
-
 ## Requirements
 
-- `opencode` installed and in your PATH
-- Default model: `zai-coding-plan/glm-4.7` (configurable per-preset via `model` field)
+- `opencode` CLI tool installed and in your PATH (the AI agent that executes tasks)
+- A configured model for opencode (default: `zai-coding-plan/glm-4.7`, override in preset with `model` field)
 
 ## Installation
 
 ```bash
 # Install as a uv tool (recommended, installs to ~/.local/bin)
-uv tool install /path/to/agent-loop
+uv tool install .
 
-# Update after code changes (must use --force to rebuild)
+# Reinstall after code changes
 uv tool install . --force
 
 # Or for development (editable, changes apply immediately)
 pip install -e .
 ```
 
-### Versioning
+## Presets
 
-Versions are automatically derived from git tags using `hatch-vcs`:
-- Tag `v0.1.0` → version `0.1.0`
-- New commits on tagged version → `0.1.1.dev1+HASH`
-- Create a new release: `git tag v0.2.0` then reinstall
+Presets are YAML files that define modes—focused prompts that cycle in order. The agent autonomously decides which files to examine and modify.
 
-## Quick Start
+### Using presets
 
 ```bash
 # List available presets
@@ -44,33 +39,22 @@ agent-loop list
 # Run a preset
 agent-loop run docs-review
 
-# Run with verbose output
-agent-loop run docs-review -v
-
-# Dry-run (see what would happen)
-agent-loop run docs-review --dry-run
-
 # Use a custom preset file
 agent-loop run -c ./my-preset.yaml
 
-# Create a new preset template
+# Create a new preset file
 agent-loop init my-preset
 ```
 
-## Presets
+For guidance on writing effective prompts, see [PROMPT_PHILOSOPHY.md](PROMPT_PHILOSOPHY.md).
 
-Presets are YAML files that define modes—review passes that cycle in order. The agent autonomously decides which files to examine and modify.
+### Preset structure
 
 Simple example:
 
 ```yaml
 name: my-review
-description: Review files for quality
-model: zai-coding-plan/glm-4.7  # optional, uses default if omitted
-
-prompt_suffix: |
-  Do not commit changes - they will be reviewed and committed at the end of the cycle.
-  Do not use the "question" tool or any tool requiring user input.
+description: Review code for accuracy and clarity
 
 modes:
   - name: accuracy
@@ -83,105 +67,61 @@ modes:
       Review for readability. Each sentence should earn its place.
       Tighten prose without losing meaning.
 
-# Run a review agent after each complete cycle (commits the accumulated changes)
 review:
   enabled: true
-  scope_globs: ["*.md", "docs/**"]  # optional guidance for review scope
-  check_prompt: |
-    Verify that changes are correct and consistent.
-  filter_prompt: |
-    Filter out stylistic opinions. Only act on real issues.
+  check_prompt: Verify accuracy and clarity of all changes.
+  filter_prompt: Ignore stylistic suggestions unless they affect meaning.
+  fix_prompt: Correct issues flagged in review.
+  scope_globs: ["*.md", "*.rst"]
 ```
 
-For presets without a `review` block, use `prompt_suffix: Commit any changes you make.` so each iteration commits.
-
-Built-in presets include accessibility, api-docs, code-refactor, dead-code, dependency-audit, docs-review, error-handling, frontend-style, migration, prose-tightening, security-review, test-strengthening, and type-tightening. Use `agent-loop list` to see them all.
+Run `agent-loop list` to see available built-in presets.
 
 ## Commands
 
 | Command | Description |
 |---------|-------------|
-| `agent-loop run <preset>` | Run an agent loop with the specified preset |
+| `agent-loop run <preset>` | Run with the specified preset |
 | `agent-loop run -c, --config <file>` | Run with a custom preset file |
 | `agent-loop list` | List available built-in presets |
-| `agent-loop init <name>` | Create a new preset template |
-| `agent-loop squash --since <hash>` | Squash commits after the given hash into one (uses LLM to generate message) |
-| `agent-loop completion <shell>` | Generate shell completion script (bash/zsh/fish) |
+| `agent-loop init <name>` | Create a new preset file in current directory |
+| `agent-loop squash --since <hash>` | Squash commits into one |
+| `agent-loop completion <shell>` | Generate shell completion script |
 
 ### Run options
 
-- `--dry-run`: Show what would happen without executing
-- `-v`: Increase verbosity (use `-v` for debug info, `-vv` for full prompts)
-- `--no-squash`: Don't squash commits when stopping
-- `-n, --max-iterations`: Maximum number of iterations to run
-- `--max-failures`: Stop after N consecutive agent failures (safety net for broken prompts or rate limits)
+`--dry-run`: Show what would happen without executing
 
-### Verbosity levels
+`-v`, `-vv`: Increase verbosity (-v for DEBUG, -vv for TRACE with prompts)
 
-| Flag | Level | What you see |
-|------|-------|--------------|
-| (none) | INFO | Basic progress, iteration markers |
-| `-v` | DEBUG | Start commit, command details |
-| `-vv` | TRACE | Full prompts sent to agents |
+`--no-squash`: Don't squash commits when stopping
+
+`-n`, `--max-iterations`: Maximum number of iterations (unlimited if omitted)
+
+`--max-failures`: Stop after N consecutive agent failures
 
 ### Squash options
 
-- `--since`: Base commit (exclusive) — all commits after this one are squashed
-- `-m, --message`: Custom commit message (skips LLM generation)
-- `--no-agent`: Use simple bullet-list fallback instead of LLM
+`--since`: Base commit (exclusive) — all commits after this one are squashed
 
-## Shell Completion
+`-m`, `--message`: Custom commit message (skips LLM generation)
 
-Enable tab completion for preset names:
+`--no-agent`: Generate bullet-list message from commit subjects instead of using LLM
+
+### Shell completion
 
 ```bash
-# Bash (~/.bashrc)
+# Bash/Zsh - add to ~/.bashrc or ~/.zshrc
 eval "$(agent-loop completion bash)"
-
-# Zsh (~/.zshrc)
 eval "$(agent-loop completion zsh)"
 
 # Fish
 agent-loop completion fish > ~/.config/fish/completions/agent-loop.fish
 ```
 
-## How it works
-
-1. Load the preset configuration
-2. Record the current git commit
-3. Loop through modes:
-   - Select the next mode (cycles through modes in order)
-   - Run `opencode run <prompt>`
-   - After completing all modes in a cycle: run optional review agent
-4. When the loop stops (Ctrl+C or max iterations reached): squash all commits into one clean commit with an LLM-generated message
-
-### Commit strategies
-
-**With review block** (recommended for multi-mode presets):
-- Iterations accumulate changes without committing
-- Review agent validates all changes, then commits
-- Result: one commit per cycle with a meaningful message
-
-**Without review block** (simple presets):
-- Each iteration commits its own changes via prompt_suffix
-- Result: multiple commits, squashed at the end
-
-### Review cycles
-
-Presets can include a `review` block that runs a validation agent after each complete cycle of modes. This catches issues like:
-- Factual drift in documentation
-- Broken CSS token references
-- Inconsistent replacements
-
-The review agent sees all uncommitted changes from the cycle, validates them against the check/filter prompts, fixes issues, and creates a single commit. See [docs/prompt_philosophy.md](docs/prompt_philosophy.md) for design principles.
-
-## Prompt Philosophy
-
-Writing effective prompts is key to getting good results from iterative agents. See [docs/prompt_philosophy.md](docs/prompt_philosophy.md) for detailed guidance and concrete examples from the built-in presets.
-
 ## Contributing
 
-For development guidance, code structure, and contributor notes, see [CLAUDE.md](CLAUDE.md).
+See [CLAUDE.md](CLAUDE.md) for development setup, code structure overview, and notes on working with the codebase.
 
 ## License
 
