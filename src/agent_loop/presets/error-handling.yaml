@@ -1,0 +1,70 @@
+name: error-handling
+description: Establish consistent error handling patterns and actionable error messages
+
+prompt_suffix: |
+  Do not commit changes - they will be reviewed and committed at the end of the cycle.
+  Do not use the "question" tool or any tool requiring user input.
+
+modes:
+  - name: inventory
+    prompt: |
+      Before changing error handling, understand what exists. Patterns should emerge from the codebase, not be imposed on it.
+
+      Survey the codebase for error handling:
+      - What exception types are raised? (built-in, custom, library-specific)
+      - How are errors caught? (bare except, specific types, exception groups)
+      - Where do errors originate vs where are they handled?
+
+      Create a mental model of the current patterns. Note inconsistencies, but don't fix them yet—understanding comes first.
+
+      If you find error handling that seems intentionally different (e.g., at system boundaries), note why it might be that way.
+
+  - name: consistency
+    prompt: |
+      Apply consistent patterns across similar operations.
+
+      Based on your inventory, identify where similar operations handle errors differently:
+      - File operations that sometimes raise, sometimes return None
+      - Network calls with varying timeout/retry behavior
+      - Validation that uses exceptions in some places, return values in others
+
+      For each inconsistency, choose the pattern that fits best and apply it uniformly. Prefer the pattern already used more often in the codebase.
+
+      Keep exception types semantic: ValueError for bad inputs, RuntimeError for impossible states, custom types for domain-specific errors.
+
+  - name: messages
+    prompt: |
+      Error messages should help users and developers understand what happened and what to do about it.
+
+      Review error messages throughout the codebase:
+      - Do they say what went wrong? ("Connection failed" vs "Error occurred")
+      - Do they include relevant context? (which file, what value, what was expected)
+      - For user-facing errors, do they suggest what to do next?
+
+      Improve messages that are vague or unhelpful. Add context where it would help debugging. For user-facing errors, include remediation hints.
+
+      Avoid exposing internal implementation details in user-facing messages.
+
+review:
+  enabled: true
+  scope_globs:
+    - "src/**/*.py"
+    - "lib/**/*.py"
+  check_prompt: |
+    Review only the source file changes. Ignore unrelated files.
+
+    For each modification, verify:
+    1. Error handling logic is correct (right exceptions caught/raised)
+    2. No silent exception swallowing was introduced
+    3. Error messages are grammatically correct and helpful
+
+    Run tests to confirm error paths still work correctly.
+
+  filter_prompt: |
+    Filter out:
+    - Suggestions for exception hierarchy redesigns
+    - Opinions about logging strategies
+    - Requests to add new error types (may be valid but out of scope)
+    - Concerns about test files or non-source code
+
+    Only act on broken error handling or incorrect exception types.

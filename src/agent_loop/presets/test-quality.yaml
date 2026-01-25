@@ -1,0 +1,69 @@
+name: test-quality
+description: Improve test suite clarity, isolation, and assertion quality
+
+prompt_suffix: |
+  Do not commit changes - they will be reviewed and committed at the end of the cycle.
+  Do not use the "question" tool or any tool requiring user input.
+
+modes:
+  - name: clarity
+    prompt: |
+      Tests should read as specifications. When someone reads a test, they should understand what behavior is being verified without studying the implementation.
+
+      Review the test files and assess: Does each test name state the behavior being verified? Is the arrange-act-assert structure evident? Are setup and teardown obvious?
+
+      For each test that's unclear:
+      - Rename it to describe the behavior, not the method being tested
+      - Restructure to make the three phases visible
+      - Extract complex setup into clearly named helpers
+
+      Leave alone tests that already communicate well. The goal is readability, not uniformity.
+
+  - name: isolation
+    prompt: |
+      Tests should be independent. Running them in any order, or running one alone, should produce the same result.
+
+      Examine the test suite for shared state: class-level variables that tests modify, global state leakage, database records that persist between tests, file system artifacts.
+
+      For each isolation problem:
+      - Move shared state into per-test setup
+      - Use fixtures that clean up after themselves
+      - Ensure tests create their own data rather than relying on other tests
+
+      After changes, verify tests still pass individually and in different orders.
+
+  - name: assertions
+    prompt: |
+      Assertions should verify meaningful outcomes, not implementation details. They should fail with messages that explain what went wrong.
+
+      Review assertions in the test suite:
+      - Are they checking behavior (what the code does) or implementation (how it does it)?
+      - Do assertion messages explain what was expected vs what happened?
+      - Are there assertions that would pass even if the code was broken?
+
+      Strengthen weak assertions. Add context to cryptic failure messages. Remove assertions that test internal mechanics rather than observable behavior.
+
+review:
+  enabled: true
+  scope_globs:
+    - "**/test_*.py"
+    - "**/*_test.py"
+    - "**/tests/**/*.py"
+  check_prompt: |
+    Review only the test file changes. Ignore any unrelated files.
+
+    For each modified test file, verify:
+    1. Tests still pass after the changes
+    2. Test names accurately describe the behavior being tested
+    3. No test logic was accidentally broken during refactoring
+
+    Run the test suite to confirm tests pass.
+
+  filter_prompt: |
+    Filter out:
+    - Style preferences about test organization
+    - Suggestions to add new test cases (out of scope)
+    - Opinions about testing frameworks or libraries
+    - Concerns about non-test files
+
+    Only act on actual test breakages or regressions.
