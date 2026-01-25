@@ -34,7 +34,7 @@ modes:
 
       Work systematically by category (colors first, then spacing, then typography) to maintain consistency.
 
-      When you find values that don't match any token, decide: Should this be a new token (if it represents a meaningful decision)? Or should it use an existing token (if it's just a slight variation)?
+      When you find values that don't match any token, use the closest existing token. New tokens should be exceptional—most variations are close enough to an existing token. A design system with fewer tokens is more coherent than one that captures every shade.
 
       After making replacements in each file:
       1. Verify the file still parses (no syntax errors)

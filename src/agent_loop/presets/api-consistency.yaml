@@ -50,19 +50,24 @@ modes:
 
   - name: propagation
     prompt: |
-      API changes must propagate throughout the codebase. When the API changes, callers, documentation, and tests need to reflect those changes.
+      API changes must propagate—but only where necessary.
 
-      Check git diff to see what API changes were made. Three independent areas need updating:
+      Check `git status` and `git diff` to see what API changes were made. Note the specific endpoints and what changed about each (renamed fields, new parameters, changed response shapes).
 
-      1. **Internal callers**: Code that calls the changed endpoints—request shapes, response handling, validation adaptation.
+      Three areas may need updates:
 
-      2. **Documentation**: API references, examples, and parameter descriptions in README files, API docs, and inline comments.
+      1. **Internal callers**: Only code that directly calls the changed endpoints
+      2. **Documentation**: Only docs that reference the changed endpoints
+      3. **Tests**: Only tests that exercise the changed endpoints
 
-      3. **Tests**: Test expectations, mock responses, and test data matching the new API behavior.
+      Launch three sub-agents. Give each:
+      - The list of changed endpoints
+      - What specifically changed about each
+      - Instruction to update only what's directly affected—no broader improvements
 
-      Launch three sub-agents to handle these areas in parallel. Each sub-agent edits its area directly. Wait for all three to complete.
+      Each sub-agent should make minimal necessary changes. If an area has nothing to update, that's fine.
 
-      After all updates, run the full test suite. Breaking changes are acceptable when the entire codebase adapts accordingly. The measure of success is passing tests.
+      After all updates, run the full test suite. The measure of success is passing tests.
 
 review:
   enabled: true

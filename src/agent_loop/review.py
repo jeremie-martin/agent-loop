@@ -23,7 +23,9 @@ def build_review_prompt(preset: Preset, config: ReviewConfig) -> str:
     parts.append("")
     parts.append("A cycle of work has been completed. Review and finalize the changes.")
     parts.append("")
-    parts.append("Use `git diff` to see what was changed. Focus only on changes related to the task above.")
+    parts.append(
+        "Use `git status` to see all changes (including new files) and `git diff` for details. Focus only on changes related to the task above."
+    )
     parts.append("If there are unrelated modified files, ignore them—do not include them in your review or commit.")
     parts.append("")
 

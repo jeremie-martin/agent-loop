@@ -89,6 +89,39 @@ Review prompts should explicitly scope what files to examine:
 
 This prevents the review agent from getting distracted by or incorrectly committing unrelated changes.
 
+## 14. Embrace diminishing returns
+
+Iterations naturally approach equilibrium. After several passes, most issues are fixed and there's less to do. This is success, not failure.
+
+**Do** include language that validates inaction:
+- "If something already works well, leave it alone"
+- "If you find no meaningful gaps, make no changes"
+- "'No changes needed' is a valid outcome"
+
+**Don't** write prompts that imply every iteration must produce changes. Agents should feel comfortable reporting "nothing to do" rather than inventing work.
+
+## 15. Bound sub-agent scope explicitly
+
+When a mode spawns sub-agents for parallel work, each sub-agent operates without the parent's context. They need explicit bounds.
+
+**Don't** write:
+- "Launch sub-agents to handle each area. Each edits its area directly."
+
+**Do** write:
+- "Launch sub-agents. Give each the specific changes from git diff and instruction to update only what's directly affected—no broader improvements."
+
+Sub-agents should receive: what changed, what they're allowed to touch, and explicit instruction to do minimal work.
+
+## 16. Deletion is value
+
+Removing something—a redundant test, a duplicate paragraph, a near-duplicate token—is as valuable as adding something. Make this explicit.
+
+- "Consolidate near-duplicates"
+- "Deleting a redundant test is as valuable as adding a missing one"
+- "Fewer, better tests"
+
+Without this framing, agents default to additive behavior. Explicit deletion language gives permission to subtract.
+
 ## Example in practice
 
 The built-in `docs-review` preset demonstrates these principles with three modes (accuracy, structure, clarity) plus a review phase. Each mode has a single focus, uses destination-focused language, and is fully self-contained. The review phase catches factual drift by cross-checking against source code.
