@@ -1,3 +1,8 @@
 """Agent Loop - CLI tool for running LLM agents in iterative refinement loops."""
 
-__version__ = "0.1.0"
+from importlib.metadata import version, PackageNotFoundError
+
+try:
+    __version__ = version("agent-loop")
+except PackageNotFoundError:
+    __version__ = "0.0.0+unknown"

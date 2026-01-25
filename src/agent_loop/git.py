@@ -78,9 +78,9 @@ def squash_commits(repo: Repo, since_commit: str, message: str | None = None) ->
             commit_messages.append(f"- {msg.strip().split(chr(10))[0]}")
         message = "Squashed commits:\n" + "\n".join(commit_messages)
 
-    # Soft reset to the starting commit, then recommit everything
+    # Soft reset to the starting commit - changes are already staged
+    # Do NOT add -A here, as that could include unrelated files
     repo.git.reset("--soft", since_commit)
-    repo.git.add("-A")
     repo.index.commit(message)
     return True
 
