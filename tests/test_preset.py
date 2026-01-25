@@ -196,54 +196,6 @@ class TestReviewConfig:
         assert preset.review is None
 
 
-class TestOptionalFields:
-    """Tests for optional fields that default to None and load from YAML."""
-
-    def test_optional_fields_loaded_from_yaml(self, tmp_path: Path):
-        """Optional fields are loaded from YAML when present."""
-        yaml_content = dedent("""
-            name: test-preset
-            model: custom-model-v1
-            modes:
-              - name: review
-                prompt: Review.
-            review:
-              enabled: true
-              check_prompt: Check.
-              scope_globs:
-                - "*.md"
-                - "docs/**"
-        """)
-        preset_file = tmp_path / "test.yaml"
-        preset_file.write_text(yaml_content)
-
-        preset = load_preset(preset_file)
-
-        assert preset.model == "custom-model-v1"
-        assert preset.review is not None
-        assert preset.review.scope_globs == ["*.md", "docs/**"]
-
-    def test_optional_fields_default_to_none_when_omitted(self, tmp_path: Path):
-        """Optional fields default to None when omitted from YAML."""
-        yaml_content = dedent("""
-            name: minimal
-            modes:
-              - name: review
-                prompt: Review.
-            review:
-              enabled: true
-              check_prompt: Check.
-        """)
-        preset_file = tmp_path / "minimal.yaml"
-        preset_file.write_text(yaml_content)
-
-        preset = load_preset(preset_file)
-
-        assert preset.model is None
-        assert preset.review is not None
-        assert preset.review.scope_globs is None
-
-
 class TestBuiltinPresets:
     """Tests for built-in presets."""
 

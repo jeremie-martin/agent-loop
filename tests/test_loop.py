@@ -1,9 +1,10 @@
 """Tests for loop logic."""
 
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
+import pytest
 
 from agent_loop.loop import LoopRunner
-from agent_loop.preset import Mode, Preset
+from agent_loop.preset import Mode, Preset, ReviewConfig
 
 
 class TestModeCycling:
@@ -40,15 +41,21 @@ class TestModeCycling:
 class TestReviewCycleTrigger:
     """Tests for review cycle triggering."""
 
+    @pytest.mark.parametrize(
+        "review_config,expected_calls",
+        [
+            (ReviewConfig(enabled=True), [False, True, False]),
+            (ReviewConfig(enabled=False), [False, False]),
+            (None, [False, False]),
+        ],
+    )
     @patch("agent_loop.loop.run_opencode")
     @patch("agent_loop.loop.run_review_cycle")
-    def test_review_runs_after_completing_cycle(self, mock_review, mock_run):
-        """Review cycle runs after completing all modes in a cycle."""
+    def test_review_cycle_triggered_correctly(self, mock_review, mock_run, review_config, expected_calls):
+        """Review cycle runs only when enabled and after completing a mode cycle."""
         mock_run.return_value = True
         mock_review.return_value = True
 
-        from agent_loop.preset import ReviewConfig
-
         preset = Preset(
             name="test",
             description="",
@@ -56,73 +63,17 @@ class TestReviewCycleTrigger:
                 Mode(name="accuracy", prompt="Check accuracy."),
                 Mode(name="clarity", prompt="Check clarity."),
             ],
-            review=ReviewConfig(enabled=True),
+            review=review_config,
         )
         runner = LoopRunner(preset, dry_run=True)
 
-        # First iteration: first mode, review not called
-        mock_review.reset_mock()
-        runner._run_iteration()
-        mock_review.assert_not_called()
-
-        # Second iteration: second mode (last in cycle), review called
-        mock_review.reset_mock()
-        runner._run_iteration()
-        mock_review.assert_called_once()
-
-        # Third iteration: wraps to first mode, review not called
-        mock_review.reset_mock()
-        runner._run_iteration()
-        mock_review.assert_not_called()
-
-    @patch("agent_loop.loop.run_opencode")
-    @patch("agent_loop.loop.run_review_cycle")
-    def test_review_not_called_when_disabled(self, mock_review, mock_run):
-        """Review cycle not called when disabled in preset."""
-        mock_run.return_value = True
-
-        from agent_loop.preset import ReviewConfig
-
-        preset = Preset(
-            name="test",
-            description="",
-            modes=[
-                Mode(name="accuracy", prompt="Check accuracy."),
-                Mode(name="clarity", prompt="Check clarity."),
-            ],
-            review=ReviewConfig(enabled=False),
-        )
-        runner = LoopRunner(preset, dry_run=True)
-
-        # Complete a full cycle
-        runner._run_iteration()
-        runner._run_iteration()
-
-        # Review should not be called
-        mock_review.assert_not_called()
-
-    @patch("agent_loop.loop.run_opencode")
-    @patch("agent_loop.loop.run_review_cycle")
-    def test_review_not_called_when_config_missing(self, mock_review, mock_run):
-        """Review cycle not called when review config is missing."""
-        mock_run.return_value = True
-
-        preset = Preset(
-            name="test",
-            description="",
-            modes=[
-                Mode(name="accuracy", prompt="Check accuracy."),
-                Mode(name="clarity", prompt="Check clarity."),
-            ],
-        )
-        runner = LoopRunner(preset, dry_run=True)
-
-        # Complete a full cycle
-        runner._run_iteration()
-        runner._run_iteration()
-
-        # Review should not be called
-        mock_review.assert_not_called()
+        for expected_call in expected_calls:
+            mock_review.reset_mock()
+            runner._run_iteration()
+            if expected_call:
+                mock_review.assert_called_once()
+            else:
+                mock_review.assert_not_called()
 
 
 class TestConsecutiveFailures:

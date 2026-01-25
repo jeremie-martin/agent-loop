@@ -1,5 +1,6 @@
 """Tests for review cycle logic."""
 
+import pytest
 from agent_loop.preset import Mode, Preset, ReviewConfig
 from agent_loop.review import build_review_prompt
 
@@ -63,19 +64,21 @@ class TestBuildReviewPrompt:
         result = build_review_prompt(preset, config)
         assert "actionable issues" in result.lower()
 
-    def test_empty_prompt_omits_section(self):
+    @pytest.mark.parametrize(
+        "check_prompt,filter_prompt,has_check_section,has_filter_section",
+        [
+            ("", "Filter.", False, True),
+            ("Check.", "", True, False),
+        ],
+    )
+    def test_empty_prompt_omits_section(self, check_prompt, filter_prompt, has_check_section, has_filter_section):
         """Empty check_prompt or filter_prompt omits corresponding section."""
         preset = Preset(name="test", description="Test", modes=[])
-
-        config = ReviewConfig(check_prompt="", filter_prompt="Filter.")
+        config = ReviewConfig(check_prompt=check_prompt, filter_prompt=filter_prompt)
         result = build_review_prompt(preset, config)
-        assert "**Review scope:**" not in result
-        assert "**Before acting, filter your feedback:**" in result
 
-        config = ReviewConfig(check_prompt="Check.", filter_prompt="")
-        result = build_review_prompt(preset, config)
-        assert "**Review scope:**" in result
-        assert "**Before acting, filter your feedback:**" not in result
+        assert ("**Review scope:**" in result) == has_check_section
+        assert ("**Before acting, filter your feedback:**" in result) == has_filter_section
 
     def test_scope_globs_included_in_prompt(self):
         """scope_globs interpolated into prompt when provided."""
