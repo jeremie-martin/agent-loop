@@ -138,8 +138,8 @@ class TestReviewConfig:
         assert config.filter_prompt == ""
         assert config.fix_prompt is None
 
-    def test_loads_review_config(self, tmp_path: Path):
-        """Review config loaded from YAML."""
+    def test_review_config_variations(self, tmp_path: Path):
+        """Review config supports enabled/disabled, optional fields, and fix_prompt."""
         yaml_content = dedent("""
             name: test-preset
             modes:
@@ -149,6 +149,7 @@ class TestReviewConfig:
               enabled: true
               check_prompt: Check for issues.
               filter_prompt: Filter false positives.
+              fix_prompt: Custom fix instructions.
         """)
         preset_file = tmp_path / "test.yaml"
         preset_file.write_text(yaml_content)
@@ -159,7 +160,7 @@ class TestReviewConfig:
         assert preset.review.enabled is True
         assert preset.review.check_prompt == "Check for issues."
         assert preset.review.filter_prompt == "Filter false positives."
-        assert preset.review.fix_prompt is None
+        assert preset.review.fix_prompt == "Custom fix instructions."
 
     def test_review_config_disabled(self, tmp_path: Path):
         """Review can be explicitly disabled."""
@@ -194,42 +195,20 @@ class TestReviewConfig:
 
         assert preset.review is None
 
-    def test_review_config_with_fix_prompt(self, tmp_path: Path):
-        """Optional fix_prompt is loaded."""
-        yaml_content = dedent("""
-            name: test-preset
-            modes:
-              - name: review
-                prompt: Review.
-            review:
-              check_prompt: Check.
-              filter_prompt: Filter.
-              fix_prompt: Custom fix instructions.
-        """)
-        preset_file = tmp_path / "test.yaml"
-        preset_file.write_text(yaml_content)
-
-        preset = load_preset(preset_file)
-
-        assert preset.review is not None
-        assert preset.review.fix_prompt == "Custom fix instructions."
-
 
 class TestOptionalFields:
     """Tests for optional fields that default to None and load from YAML."""
 
-    def test_model_defaults_to_none(self):
-        """Model field defaults to None when not specified."""
+    def test_optional_fields_defaults_to_none(self):
+        """Optional fields (model, scope_globs) default to None when not specified."""
         preset = Preset(name="test", description="", modes=[])
         assert preset.model is None
 
-    def test_scope_globs_defaults_to_none(self):
-        """Review scope_globs field defaults to None when not specified."""
         config = ReviewConfig()
         assert config.scope_globs is None
 
-    def test_optional_fields_loaded_from_yaml(self, tmp_path: Path):
-        """Optional fields are loaded from YAML when present."""
+    def test_optional_fields_from_yaml(self, tmp_path: Path):
+        """Optional fields are loaded from YAML when present, None when omitted."""
         yaml_content = dedent("""
             name: test-preset
             model: custom-model-v1
@@ -252,9 +231,7 @@ class TestOptionalFields:
         assert preset.review is not None
         assert preset.review.scope_globs == ["*.md", "docs/**"]
 
-    def test_optional_fields_none_when_omitted_from_yaml(self, tmp_path: Path):
-        """Optional fields are None when not in YAML."""
-        yaml_content = dedent("""
+        yaml_content_minimal = dedent("""
             name: minimal
             modes:
               - name: review
@@ -263,14 +240,14 @@ class TestOptionalFields:
               enabled: true
               check_prompt: Check.
         """)
-        preset_file = tmp_path / "minimal.yaml"
-        preset_file.write_text(yaml_content)
+        preset_file_minimal = tmp_path / "minimal.yaml"
+        preset_file_minimal.write_text(yaml_content_minimal)
 
-        preset = load_preset(preset_file)
+        preset_minimal = load_preset(preset_file_minimal)
 
-        assert preset.model is None
-        assert preset.review is not None
-        assert preset.review.scope_globs is None
+        assert preset_minimal.model is None
+        assert preset_minimal.review is not None
+        assert preset_minimal.review.scope_globs is None
 
 
 class TestBuiltinPresets:
@@ -289,31 +266,26 @@ class TestBuiltinPresets:
             assert len(preset.modes) > 0, f"Preset {name} has no modes"
             assert all(m.name and m.prompt for m in preset.modes), f"Preset {name} has invalid modes"
 
-    def test_docs_review_has_suffix(self):
-        """docs-review preset uses prompt_suffix."""
+    def test_docs_review_features(self):
+        """docs-review preset has suffix with commit instruction and self-orchestrated review."""
         path = find_preset("docs-review")
         assert path is not None
 
         preset = load_preset(path)
 
+        # Has prompt_suffix with commit instruction
         assert preset.prompt_suffix is not None
-        # Each mode commits at the end after self-review
         assert "commit" in preset.prompt_suffix.lower()
-
-    def test_docs_review_has_self_review(self):
-        """docs-review preset has self-orchestrated review in prompts."""
-        path = find_preset("docs-review")
-        assert path is not None
-        preset = load_preset(path)
 
         # Self-review is embedded in prompts, not external review config
         assert preset.review is None
+
         # Verify self-review pattern is in the mode prompts
         quality_mode = next(m for m in preset.modes if m.name == "quality")
         assert "sub-agent" in quality_mode.prompt.lower()
         assert "filter" in quality_mode.prompt.lower()
 
-    def test_frontend_style_has_self_review(self):
+    def test_frontend_style_features(self):
         """frontend-style preset has self-orchestrated review in prompts."""
         path = find_preset("frontend-style")
         assert path is not None
@@ -321,6 +293,7 @@ class TestBuiltinPresets:
 
         # Self-review is embedded in prompts, not external review config
         assert preset.review is None
+
         # Verify self-review pattern is in the mode prompts
         tokens_mode = next(m for m in preset.modes if m.name == "tokens")
         assert "sub-agent" in tokens_mode.prompt.lower()

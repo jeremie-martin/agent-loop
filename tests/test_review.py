@@ -32,8 +32,8 @@ class TestBuildReviewPrompt:
         assert "**Before acting, filter your feedback:**" in result
         assert "Filter out noise." in result
 
-    def test_includes_commit_instructions(self):
-        """Prompt includes commit instructions."""
+    def test_includes_commit_and_scope_instructions(self):
+        """Prompt includes commit instructions and guidance to ignore unrelated files."""
         preset = Preset(name="test", description="Test", modes=[])
         config = ReviewConfig()
 
@@ -41,46 +41,26 @@ class TestBuildReviewPrompt:
 
         assert "**Commit:**" in result
         assert "commit message" in result
-
-    def test_handles_no_changes(self):
-        """Prompt handles case where there are no changes."""
-        preset = Preset(name="test", description="Test", modes=[])
-        config = ReviewConfig()
-
-        result = build_review_prompt(preset, config)
-
         assert "no changes to commit" in result.lower()
-
-    def test_scopes_to_relevant_files(self):
-        """Prompt tells agent to ignore unrelated files."""
-        preset = Preset(name="test", description="Test", modes=[])
-        config = ReviewConfig()
-
-        result = build_review_prompt(preset, config)
-
         assert "unrelated" in result.lower()
         assert "ignore" in result.lower()
 
-    def test_uses_custom_fix_prompt(self):
+    def test_fix_prompt_variations(self):
         """Custom fix_prompt replaces default fix instructions."""
         preset = Preset(name="test", description="Test", modes=[])
+
+        # Test custom fix_prompt
         config = ReviewConfig(
             check_prompt="Check.",
             filter_prompt="Filter.",
             fix_prompt="Custom fix: do this specific thing.",
         )
-
         result = build_review_prompt(preset, config)
-
         assert "Custom fix: do this specific thing." in result
 
-    def test_default_fix_prompt(self):
-        """Default fix instructions used when fix_prompt not specified."""
-        preset = Preset(name="test", description="Test", modes=[])
+        # Test default fix_prompt
         config = ReviewConfig(check_prompt="Check.", filter_prompt="Filter.")
-
         result = build_review_prompt(preset, config)
-
         assert "actionable issues" in result.lower()
 
     def test_empty_prompt_omits_section(self):
