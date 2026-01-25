@@ -121,6 +121,7 @@ class TestLoadPreset:
 
         preset = load_preset(preset_file)
 
+        assert preset.prompt_suffix is not None
         assert "First line." in preset.prompt_suffix
         assert "Second line." in preset.prompt_suffix
 
@@ -210,6 +211,7 @@ class TestReviewConfig:
 
         preset = load_preset(preset_file)
 
+        assert preset.review is not None
         assert preset.review.fix_prompt == "Custom fix instructions."
 
 
@@ -295,6 +297,7 @@ class TestOptionalFields:
 
         preset = load_preset(preset_file)
 
+        assert preset.review is not None
         assert preset.review.scope_globs is None
 
 
@@ -302,12 +305,17 @@ class TestBuiltinPresets:
     """Tests for built-in presets."""
 
     def test_all_presets_load(self):
-        """All built-in presets load without error."""
+        """All built-in presets load successfully with required fields."""
         presets = list_presets()
         assert len(presets) > 0
 
         for name, description in presets:
-            assert "(invalid preset)" not in description, f"Preset {name} failed to load"
+            preset_path = find_preset(name)
+            assert preset_path is not None, f"Preset {name} not found"
+            preset = load_preset(preset_path)
+            assert preset.name == name, f"Preset name mismatch for {name}"
+            assert len(preset.modes) > 0, f"Preset {name} has no modes"
+            assert all(m.name and m.prompt for m in preset.modes), f"Preset {name} has invalid modes"
 
     def test_docs_review_has_suffix(self):
         """docs-review preset uses prompt_suffix."""
@@ -323,6 +331,7 @@ class TestBuiltinPresets:
     def test_docs_review_has_self_review(self):
         """docs-review preset has self-orchestrated review in prompts."""
         path = find_preset("docs-review")
+        assert path is not None
         preset = load_preset(path)
 
         # Self-review is embedded in prompts, not external review config
@@ -335,6 +344,7 @@ class TestBuiltinPresets:
     def test_frontend_style_has_self_review(self):
         """frontend-style preset has self-orchestrated review in prompts."""
         path = find_preset("frontend-style")
+        assert path is not None
         preset = load_preset(path)
 
         # Self-review is embedded in prompts, not external review config
@@ -347,8 +357,10 @@ class TestBuiltinPresets:
     def test_suffix_applied_to_all_modes(self):
         """Suffix appears in full prompt for every mode."""
         path = find_preset("docs-review")
+        assert path is not None
         preset = load_preset(path)
 
+        assert preset.prompt_suffix is not None
         for mode in preset.modes:
             full_prompt = preset.get_full_prompt(mode)
             assert preset.prompt_suffix.strip() in full_prompt

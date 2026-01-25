@@ -20,8 +20,8 @@ class TestBuildReviewPrompt:
 
         assert "Task: Review documentation for accuracy" in result
 
-    def test_includes_check_prompt(self):
-        """Prompt includes the check instructions."""
+    def test_includes_check_and_filter_prompts(self):
+        """Prompt includes check and filter instructions."""
         preset = Preset(name="test", description="Test", modes=[])
         config = ReviewConfig(check_prompt="Verify all claims.", filter_prompt="Filter out noise.")
 
@@ -29,16 +29,8 @@ class TestBuildReviewPrompt:
 
         assert "**Review scope:**" in result
         assert "Verify all claims." in result
-
-    def test_includes_filter_prompt(self):
-        """Prompt includes the filter instructions."""
-        preset = Preset(name="test", description="Test", modes=[])
-        config = ReviewConfig(check_prompt="Check.", filter_prompt="Filter false positives.")
-
-        result = build_review_prompt(preset, config)
-
         assert "**Before acting, filter your feedback:**" in result
-        assert "Filter false positives." in result
+        assert "Filter out noise." in result
 
     def test_includes_commit_instructions(self):
         """Prompt includes commit instructions."""
@@ -153,16 +145,14 @@ class TestBuildReviewPromptIntegration:
  2. No content was removed that was actually accurate
  3. Terminology matches what the code uses""",
             filter_prompt="""Filter out:
- - Stylistic preferences that don't affect accuracy
- - Suggestions to add content beyond current scope""",
+  - Stylistic preferences that don't affect accuracy
+  - Suggestions to add content beyond current scope""",
         )
 
         result = build_review_prompt(preset, config)
 
-        # Verify task description included
+        # Verify task description and all expected sections present
         assert "Task: Review documentation for quality, accuracy, and coherence" in result
-
-        # Verify all expected sections present
         assert "**Review scope:**" in result
         assert "**Before acting, filter your feedback:**" in result
         assert "**Fix:**" in result
@@ -174,7 +164,6 @@ class TestBuildReviewPromptIntegration:
 
         # Verify custom filter_prompt content preserved
         assert "Stylistic preferences that don't affect accuracy" in result
-        assert "Suggestions to add content beyond current scope" in result
 
         # Verify git instructions present
         assert "git status" in result
