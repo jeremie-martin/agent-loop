@@ -1,6 +1,10 @@
 name: frontend-style
 description: Establish coherent, centralized styling with self-orchestrated verification
 
+prompt_prefix: |
+  Project context lives in markdown documentation. Before anything else, read README files, CLAUDE.md, AGENTS.md, and all documentation files
+  to understand patterns and conventions. Sub-agents you spawn should do the same.
+
 prompt_suffix: |
   Do not use the "question" tool or any tool requiring user input.
   Stage and commit your changes at the end with a descriptive message.
