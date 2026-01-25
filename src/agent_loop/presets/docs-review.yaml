@@ -64,7 +64,15 @@ modes:
       Deletion is value. Removing redundant content is as important as improving
       what remains.
 
-      **After completing your changes**, orchestrate the same verification:
-      1. Spawn verifier sub-agent with task context and your changes
-      2. Spawn filter sub-agent with verification feedback
-      3. Act only on filtered feedback, then commit
+      **After completing your changes**, orchestrate verification:
+
+      1. Spawn a sub-agent to review your work. Give it:
+         - This task (documentation coherence)
+         - The files you modified
+         - Instruction to check: did consolidation lose important content?
+           Is navigation clearer? Any further consolidation possible?
+
+      2. Spawn a filter sub-agent. Give it the verification feedback and ask:
+         which concerns are genuine vs over-cautious?
+
+      3. Address filtered feedback, then commit.
