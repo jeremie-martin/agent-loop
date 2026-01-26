@@ -59,35 +59,41 @@ modes:
 
   - name: propagation
     prompt: |
-      Error handling changes affect code that catches or tests for specific exceptions.
+      Ensure error handling is consistent between raise sites and catch sites.
 
-      Check `git status` and `git diff` to see what error handling changed in this
-      cycle. Note specifically:
-      - Which exception types changed (ValueError -> CustomError)
-      - Which messages changed that tests might assert on
-      - Which patterns changed (return None -> raise, or vice versa)
+      When exception types or patterns change but callers aren't updated, code
+      breaks silently or catches the wrong thing. Find and fix these mismatches.
 
-      Three areas may need updates:
-      1. **Catch blocks** expecting the old exception type
-      2. **Tests** asserting on specific exceptions or messages
-      3. **Documentation** describing error behavior
+      Survey the codebase for inconsistencies:
 
-      Launch three sub-agents **in parallel**—these areas are independent and can be
-      updated simultaneously. Give each:
-      - The specific changes (from git status/diff)
-      - Instruction to update only code directly affected by those changes—no
-        additional improvements
+      **Catch blocks catching the wrong type**: Find except clauses and verify
+      the caught type matches what's actually raised. Look for:
+      - Catching a parent type when a more specific custom exception is raised
+      - Catching exceptions that are no longer raised
+      - Missing catches for newly raised exceptions
 
-      If an area has nothing to update, that's fine. Minimal changes are better
-      than thorough ones.
+      **Tests asserting wrong exceptions**: Find tests using `pytest.raises` or
+      similar and verify they match the actual exception types and messages.
 
-      After all updates, run tests. Failing tests indicate missed sync points.
+      **Documentation mismatches**: Find docstrings or docs that describe error
+      behavior and verify they match the implementation.
 
-      **After sub-agents complete**, orchestrate verification:
+      For each mismatch found, update the catch site / test / doc to match the
+      actual raise behavior. The raise site is the source of truth.
 
-      1. Spawn a sub-agent to review the combined changes. Check: are all catch
-         blocks updated? Are tests passing? Any missed propagation points?
+      Run tests after changes. Failing tests indicate fixes worked (if the test
+      was wrong) or more propagation needed (if behavior changed).
 
-      2. Spawn a filter sub-agent. Identify which concerns are genuine vs over-cautious.
+      If everything is already consistent, "no changes needed" is a valid outcome.
+
+      **After completing your changes**, orchestrate verification:
+
+      1. Spawn a sub-agent to review your work. Give it:
+         - The files you modified
+         - Instruction to check: are catch blocks correct? Do tests pass?
+           Any remaining mismatches?
+
+      2. Spawn a filter sub-agent. Give it the verification feedback and ask:
+         which concerns are genuine issues vs over-caution?
 
       3. Address filtered feedback, then commit.

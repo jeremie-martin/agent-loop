@@ -60,34 +60,44 @@ modes:
 
   - name: propagation
     prompt: |
-      API changes must propagate—but only where necessary.
+      Ensure API callers, tests, and docs match the actual API contracts.
 
-      Check `git status` and `git diff` to see what API changes were made in this
-      cycle. Note the specific endpoints and what changed about each (renamed fields,
-      new parameters, changed response shapes).
+      APIs have multiple consumers: internal code that calls them, tests that
+      exercise them, and documentation that describes them. When these drift
+      apart, bugs hide and users get confused.
 
-      Three areas may need updates:
+      Survey the codebase for mismatches:
 
-      1. **Internal callers**: Only code that directly calls the changed endpoints
-      2. **Documentation**: Only docs that reference the changed endpoints
-      3. **Tests**: Only tests that exercise the changed endpoints
+      **Internal callers**: Find code that calls API endpoints. Verify:
+      - Request payloads match current parameter requirements
+      - Response handling matches current response shapes
+      - Error handling matches current error responses
 
-      Launch three sub-agents **in parallel**—these areas are independent and can be
-      updated simultaneously. Give each:
-      - The list of changed endpoints
-      - What specifically changed about each
-      - Instruction to update only what's directly affected—no broader improvements
+      **Tests**: Find API tests. Verify:
+      - Test payloads match current validation rules
+      - Assertions match current response structures
+      - Error case tests match current error behavior
 
-      Each sub-agent should make minimal necessary changes. If an area has nothing
-      to update, that's fine.
+      **Documentation**: Find API docs (OpenAPI, markdown, docstrings). Verify:
+      - Documented parameters match implementation
+      - Documented responses match actual responses
+      - Examples are valid and current
 
-      After all updates, run the full test suite. The measure of success is passing tests.
+      For each mismatch, update the caller / test / doc to match the actual API.
+      The endpoint implementation is the source of truth.
 
-      **After sub-agents complete**, orchestrate verification:
+      Run tests after changes to verify fixes.
 
-      1. Spawn a sub-agent to review the combined changes. Check: are all callers
-         updated? Are tests passing? Any missed propagation points?
+      If everything is already consistent, "no changes needed" is a valid outcome.
 
-      2. Spawn a filter sub-agent. Identify which concerns are genuine vs over-cautious.
+      **After completing your changes**, orchestrate verification:
+
+      1. Spawn a sub-agent to review your work. Give it:
+         - The files you modified
+         - Instruction to check: are callers correct? Do tests pass?
+           Is documentation accurate?
+
+      2. Spawn a filter sub-agent. Give it the verification feedback and ask:
+         which concerns are genuine issues vs over-caution?
 
       3. Address filtered feedback, then commit.

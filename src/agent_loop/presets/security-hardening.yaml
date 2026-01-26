@@ -1,0 +1,97 @@
+name: security-hardening
+description: Audit and harden security boundaries
+
+prompt_prefix: |
+  FIRST: Find and read all markdown documentation in this project before doing anything else.
+  Search for and read: README files (root and subdirectories), CLAUDE.md, AGENTS.md, and all
+  files in docs/ or documentation/ directories. Understand the codebase's patterns, conventions,
+  and architecture. Only then proceed with your task.
+
+  When spawning sub-agents, explicitly instruct each one to first read all project
+  documentation (README files, CLAUDE.md, AGENTS.md, docs/ and documentation/ directories)
+  before starting its task.
+
+prompt_suffix: |
+  Do not use the "question" tool or any tool requiring user input.
+  Stage and commit your changes at the end with a descriptive message.
+
+modes:
+  - name: injection
+    prompt: |
+      Injection vulnerabilities let attackers run code through your inputs.
+      Find and fix them.
+
+      Search for patterns where user input flows into dangerous operations:
+
+      **SQL injection**: String concatenation or f-strings in SQL queries.
+      Fix: Use parameterized queries.
+
+      **Command injection**: User input passed to shell commands.
+      Fix: Use subprocess with array arguments, avoid shell=True.
+
+      **Path traversal**: User input in file paths without validation.
+      Fix: Validate paths, resolve and check prefix, reject `..` sequences.
+
+      **Template injection**: User input in template strings.
+      Fix: Use safe template rendering with auto-escaping.
+
+      For each vulnerability found:
+      1. Verify it's actually exploitable (trace the data flow)
+      2. Apply the appropriate fix
+      3. Run tests to ensure functionality is preserved
+
+      Don't introduce new vulnerabilities while fixing others. Test changes
+      carefully.
+
+      If no injection vulnerabilities exist, "no changes needed" is valid.
+
+      **After completing your changes**, orchestrate verification:
+
+      1. Spawn a sub-agent to review your work. Give it:
+         - The files you modified
+         - Instruction to check: do fixes address the vulnerabilities? Any
+           new issues introduced? Do tests pass?
+
+      2. Spawn a filter sub-agent. Give it the verification feedback and ask:
+         which concerns are genuine issues vs theoretical?
+
+      3. Address filtered feedback, then commit.
+
+  - name: boundaries
+    prompt: |
+      Security happens at boundaries—where untrusted data enters the system.
+      Strengthen those boundaries.
+
+      Review trust boundaries for:
+
+      **Missing input validation**: API endpoints, CLI arguments, file parsing,
+      form submissions. Validate types, ranges, formats at the boundary.
+
+      **Authentication gaps**: Endpoints or operations missing auth checks.
+      Sensitive data accessible without proper authentication.
+
+      **Authorization gaps**: Users accessing resources they shouldn't. Missing
+      ownership checks. Privilege escalation paths.
+
+      **Data exposure**: Sensitive data in logs, error messages, or API responses.
+      Secrets in version control. Overly permissive CORS.
+
+      **Credential handling**: Hardcoded secrets (move to env vars). Weak
+      password storage (use bcrypt/argon2). Tokens in URLs.
+
+      For each issue found, apply the appropriate fix. Prefer allowlists over
+      denylists for validation. Return generic errors to users, log details
+      internally.
+
+      If boundaries are already well-guarded, "no changes needed" is valid.
+
+      **After completing your changes**, orchestrate verification:
+
+      1. Spawn a sub-agent to review your work. Give it:
+         - The files you modified
+         - Instruction to check: are fixes correct? Any new issues? Do tests pass?
+
+      2. Spawn a filter sub-agent. Give it the verification feedback and ask:
+         which concerns are genuine issues vs over-engineering?
+
+      3. Address filtered feedback, then commit.

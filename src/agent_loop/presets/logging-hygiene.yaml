@@ -1,0 +1,93 @@
+name: logging-hygiene
+description: Standardize logging patterns and improve log quality
+
+prompt_prefix: |
+  FIRST: Find and read all markdown documentation in this project before doing anything else.
+  Search for and read: README files (root and subdirectories), CLAUDE.md, AGENTS.md, and all
+  files in docs/ or documentation/ directories. Understand the codebase's patterns, conventions,
+  and architecture. Only then proceed with your task.
+
+  When spawning sub-agents, explicitly instruct each one to first read all project
+  documentation (README files, CLAUDE.md, AGENTS.md, docs/ and documentation/ directories)
+  before starting its task.
+
+prompt_suffix: |
+  Do not use the "question" tool or any tool requiring user input.
+  Stage and commit your changes at the end with a descriptive message.
+
+modes:
+  - name: patterns
+    prompt: |
+      Consistent logging makes debugging possible. When every module logs
+      differently, correlating events across the system becomes guesswork.
+
+      Survey how logging currently works:
+      - What library? (logging, loguru, structlog, print statements)
+      - How are loggers obtained? (module-level, class-level, passed in)
+      - What patterns are most common?
+
+      The dominant pattern is the standard. Fix deviations:
+      - Convert print statements to appropriate log calls (where diagnostic)
+      - Standardize logger acquisition across modules
+      - Fix log level misuse (DEBUG for errors, INFO for verbose output)
+
+      Appropriate log levels:
+      - DEBUG: Detailed diagnostic info, disabled in production
+      - INFO: Normal operation milestones
+      - WARNING: Unexpected but handled situations
+      - ERROR: Failures that affect functionality
+
+      Leave intentional user-facing print statements alone—those aren't logs.
+
+      If logging is already consistent, "no changes needed" is a valid outcome.
+
+      **After completing your changes**, orchestrate verification:
+
+      1. Spawn a sub-agent to review your work. Give it:
+         - The files you modified
+         - Instruction to check: are patterns consistent? Log levels appropriate?
+           Any print statements that should be logs (or vice versa)?
+
+      2. Spawn a filter sub-agent. Give it the verification feedback and ask:
+         which concerns are genuine issues vs stylistic preferences?
+
+      3. Address filtered feedback, then commit.
+
+  - name: messages
+    prompt: |
+      Good log messages answer: What happened? Where? With what data?
+
+      Review log messages throughout the codebase for quality:
+
+      **Missing context**: Messages that don't include relevant variables.
+      Bad: `logger.error("Failed to process file")`
+      Good: `logger.error("Failed to process file: %s", path)`
+
+      **Vague messages**: Messages that don't explain what happened.
+      Bad: `logger.info("Done")`
+      Good: `logger.info("Processed %d records in %.2fs", count, elapsed)`
+
+      **Sensitive data**: Ensure logs don't expose passwords, tokens, or PII.
+      Redact or omit sensitive fields.
+
+      Add logging to important operations that currently have none:
+      - Error handling blocks (at ERROR level with exception info)
+      - External service calls (at DEBUG/INFO level)
+      - Significant state transitions
+
+      Don't over-log. Every log statement has overhead. Add logs where they
+      genuinely aid debugging or monitoring.
+
+      If messages are already clear and complete, "no changes needed" is valid.
+
+      **After completing your changes**, orchestrate verification:
+
+      1. Spawn a sub-agent to review your work. Give it:
+         - The files you modified
+         - Instruction to check: are messages actionable? Any sensitive data
+           exposed? Any excessive logging?
+
+      2. Spawn a filter sub-agent. Give it the verification feedback and ask:
+         which concerns are genuine issues vs preferences?
+
+      3. Address filtered feedback, then commit.

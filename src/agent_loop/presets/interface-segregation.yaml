@@ -1,0 +1,61 @@
+name: interface-segregation
+description: Split bloated interfaces into focused contracts
+
+prompt_prefix: |
+  FIRST: Find and read all markdown documentation in this project before doing anything else.
+  Search for and read: README files (root and subdirectories), CLAUDE.md, AGENTS.md, and all
+  files in docs/ or documentation/ directories. Understand the codebase's patterns, conventions,
+  and architecture. Only then proceed with your task.
+
+  When spawning sub-agents, explicitly instruct each one to first read all project
+  documentation (README files, CLAUDE.md, AGENTS.md, docs/ and documentation/ directories)
+  before starting its task.
+
+prompt_suffix: |
+  Do not use the "question" tool or any tool requiring user input.
+  Stage and commit your changes at the end with a descriptive message.
+
+modes:
+  - name: segregate
+    prompt: |
+      Clients shouldn't depend on methods they don't use. When interfaces
+      bundle unrelated responsibilities, implementers end up with stub methods
+      and clients depend on more than they need.
+
+      Find bloated interfaces:
+      - Interfaces where implementers leave methods as `pass` or `NotImplementedError`
+      - Classes where different clients use completely different method subsets
+      - Methods bundled together that don't share state or purpose
+
+      Not all large interfaces are bloated. Leave alone:
+      - Interfaces where all methods are genuinely related
+      - Interfaces where all implementers use all methods
+      - Standard library interfaces with established contracts
+
+      For each bloated interface:
+      1. Identify the distinct responsibilities bundled together
+      2. Create focused interfaces, each with a single purpose
+      3. Update implementers to implement only what they support
+      4. Update clients to depend on the specific interface they need
+
+      Name interfaces by what they do: `UserRepository` might split into
+      `UserReader` and `UserWriter`.
+
+      If clients commonly need multiple interfaces together, provide a
+      composed interface: `class ReadWriteUser(UserReader, UserWriter): pass`
+
+      Run tests frequently. Interface changes often cause subtle breaks.
+
+      If interfaces are already well-segregated, "no changes needed" is valid.
+
+      **After completing your changes**, orchestrate verification:
+
+      1. Spawn a sub-agent to review your work. Give it:
+         - The files you modified
+         - Instruction to check: are new interfaces cohesive? Do tests pass?
+           Any clients using the wrong interface?
+
+      2. Spawn a filter sub-agent. Give it the verification feedback and ask:
+         which concerns are genuine issues vs design taste?
+
+      3. Address filtered feedback, then commit.

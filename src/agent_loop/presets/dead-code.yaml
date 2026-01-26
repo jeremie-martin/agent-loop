@@ -1,0 +1,60 @@
+name: dead-code
+description: Find and remove unused code
+
+prompt_prefix: |
+  FIRST: Find and read all markdown documentation in this project before doing anything else.
+  Search for and read: README files (root and subdirectories), CLAUDE.md, AGENTS.md, and all
+  files in docs/ or documentation/ directories. Understand the codebase's patterns, conventions,
+  and architecture. Only then proceed with your task.
+
+  When spawning sub-agents, explicitly instruct each one to first read all project
+  documentation (README files, CLAUDE.md, AGENTS.md, docs/ and documentation/ directories)
+  before starting its task.
+
+prompt_suffix: |
+  Do not use the "question" tool or any tool requiring user input.
+  Stage and commit your changes at the end with a descriptive message.
+
+modes:
+  - name: removal
+    prompt: |
+      Dead code is weight. It confuses readers, clutters search results, and
+      sometimes hides bugs. Removing it is value.
+
+      Find code that exists but is never executed:
+      - Unused imports
+      - Functions/methods defined but never called
+      - Classes never instantiated or subclassed
+      - Variables assigned but never read
+      - Commented-out code (if it's needed, it's in version control)
+      - Unreachable code after return/raise/break
+
+      For each candidate, verify it's genuinely unused:
+      - Search the entire codebase for references
+      - Check for dynamic access (getattr, reflection, string-based lookup)
+      - Check for external entry points (CLI, API, plugins)
+      - Check for framework magic (decorators, signal handlers, test fixtures)
+
+      Be conservative. Only remove code you're confident is unused. When in
+      doubt, leave it. False positives (removing used code) are far worse than
+      false negatives (leaving dead code).
+
+      Delete dead code entirely—don't comment it out. Remove imports and
+      variables that become unused as a result. Run tests after each removal
+      to verify nothing breaks.
+
+      If tests fail, the code wasn't dead. Restore it and move on.
+
+      If the codebase is already clean, "no changes needed" is a valid outcome.
+
+      **After completing your changes**, orchestrate verification:
+
+      1. Spawn a sub-agent to review your work. Give it:
+         - The files you modified
+         - Instruction to check: do tests pass? Any remaining references to
+           removed code? Any accidentally removed code that was actually used?
+
+      2. Spawn a filter sub-agent. Give it the verification feedback and ask:
+         which concerns are genuine issues vs over-caution?
+
+      3. Address filtered feedback, then commit.
