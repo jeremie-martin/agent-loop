@@ -18,31 +18,24 @@ prompt_suffix: |
 modes:
   - name: patterns
     prompt: |
-      Survey and improve error handling patterns in this codebase.
+      Consistent error handling makes code predictable. When similar operations
+      handle errors the same way, developers know what to expect and callers
+      know how to respond.
 
-      Before changing anything, understand what exists. Survey for:
-      - What exception types are raised? (built-in, custom, library-specific)
-      - How are errors caught? (bare except, specific types, exception groups)
-      - Where do errors originate vs where are they handled?
+      Signs of consistent error handling:
+      - Similar operations use the same pattern (exceptions vs return values)
+      - Exception types are semantic (ValueError for bad inputs, RuntimeError
+        for impossible states, custom types for domain-specific errors)
+      - Error messages explain what went wrong and include relevant context
 
-      Identify where similar operations handle errors differently:
-      - File operations that sometimes raise, sometimes return None
-      - Network calls with varying timeout/retry behavior
-      - Validation that uses exceptions in some places, return values in others
+      Identify where similar operations handle errors differently and bring them
+      into alignment. Prefer the pattern already used more often in the codebase.
 
-      For inconsistencies, choose the pattern that fits best and apply it uniformly.
-      Prefer the pattern already used more often in the codebase.
+      Focus on inconsistencies that would confuse developers or cause bugs. A few
+      meaningful fixes are better than standardizing every error message.
 
-      Keep exception types semantic: ValueError for bad inputs, RuntimeError for
-      impossible states, custom types for domain-specific errors.
-
-      Review error messages throughout:
-      - Do they say what went wrong? ("Connection failed" vs "Error occurred")
-      - Do they include relevant context? (which file, what value, what was expected)
-      - For user-facing errors, do they suggest what to do next?
-
-      Improve messages that are vague or unhelpful. Add context where it would help
-      debugging. Avoid exposing internal implementation details in user-facing messages.
+      Improve messages that are vague ("Error occurred") or lack context. For
+      user-facing errors, avoid exposing internal details.
 
       **After completing your changes**, orchestrate verification:
 
@@ -59,30 +52,20 @@ modes:
 
   - name: propagation
     prompt: |
-      Ensure error handling is consistent between raise sites and catch sites.
+      Error handling sites should match what's actually raised. When catch blocks,
+      tests, and documentation drift from the implementation, bugs hide and
+      behavior becomes unpredictable.
 
-      When exception types or patterns change but callers aren't updated, code
-      breaks silently or catches the wrong thing. Find and fix these mismatches.
+      Common mismatches:
+      - Catch blocks catching the wrong type or types no longer raised
+      - Tests asserting wrong exception types or messages
+      - Documentation describing different error behavior than the code
 
-      Survey the codebase for inconsistencies:
+      The raise site is the source of truth. For each mismatch, update the catch
+      block, test, or documentation to match actual behavior.
 
-      **Catch blocks catching the wrong type**: Find except clauses and verify
-      the caught type matches what's actually raised. Look for:
-      - Catching a parent type when a more specific custom exception is raised
-      - Catching exceptions that are no longer raised
-      - Missing catches for newly raised exceptions
-
-      **Tests asserting wrong exceptions**: Find tests using `pytest.raises` or
-      similar and verify they match the actual exception types and messages.
-
-      **Documentation mismatches**: Find docstrings or docs that describe error
-      behavior and verify they match the implementation.
-
-      For each mismatch found, update the catch site / test / doc to match the
-      actual raise behavior. The raise site is the source of truth.
-
-      Run tests after changes. Failing tests indicate fixes worked (if the test
-      was wrong) or more propagation needed (if behavior changed).
+      Focus on mismatches that would cause failures or mask errors. Run tests
+      after changes to verify fixes.
 
       If everything is already consistent, "no changes needed" is a valid outcome.
 

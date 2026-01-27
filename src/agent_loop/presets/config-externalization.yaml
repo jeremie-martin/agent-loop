@@ -18,35 +18,31 @@ prompt_suffix: |
 modes:
   - name: extract
     prompt: |
-      Hardcoded values that vary by environment don't belong in code. They
-      belong in configuration.
+      A well-configured codebase has no hardcoded values that vary by environment.
+      URLs, timeouts, and credentials live in configuration—changing them doesn't
+      require changing code.
 
-      Find values that should be configurable:
+      Values that belong in configuration:
       - URLs, hostnames, ports (API endpoints, database connections)
       - Timeouts, retry counts, batch sizes
       - Feature flags, environment names
       - Credentials and secrets (these should NEVER be hardcoded)
 
-      Leave hardcoded:
+      Values that can stay hardcoded:
       - True constants (mathematical, protocol-defined)
       - Implementation details that shouldn't vary
       - Values that would break the system if changed
 
-      First, understand the existing configuration pattern:
-      - Environment variables? Config file? Settings module?
-      - Use what exists. If nothing exists, prefer environment variables for
-        secrets and simple settings.
+      Use the existing configuration pattern (environment variables, config file,
+      settings module). If nothing exists, prefer environment variables for secrets
+      and simple settings.
 
-      For each extraction:
-      - Define a clear, consistent configuration key
-      - Provide the current value as default
-      - Add validation if the value has constraints
-      - Update all places that used the hardcoded value
+      Focus on values where hardcoding causes real problems—secrets that leak,
+      URLs that differ between environments. A few clear extractions are better
+      than moving every constant.
 
-      For secrets: NEVER commit actual values. Use environment variables.
-      Add placeholders to .env.example if one exists.
-
-      Group related configuration together for discoverability.
+      For secrets: NEVER commit actual values. Use environment variables and add
+      placeholders to .env.example if one exists.
 
       If values are already externalized appropriately, "no changes needed"
       is valid.

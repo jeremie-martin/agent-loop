@@ -18,32 +18,26 @@ prompt_suffix: |
 modes:
   - name: contracts
     prompt: |
-      Make APIs predictable. Once someone knows one endpoint, they should be able
-      to guess how others work.
+      A well-designed API is predictable. Once someone knows one endpoint, they
+      can guess how others work. Naming follows patterns, responses have consistent
+      structure, and validation behaves uniformly.
 
-      Review API endpoint definitions for consistency:
+      Consistent APIs have:
+      - **Predictable naming**: Plural nouns for resources (`/users`), HTTP verbs
+        used correctly (GET reads, POST creates, PUT/PATCH updates, DELETE removes)
+      - **Uniform responses**: Same structure for success and error responses,
+        consistent pagination, empty results handled the same way
+      - **Consistent validation**: Similar fields validated similarly, validation
+        errors structured the same way
 
-      **Naming:**
-      - Do resources use plural nouns? (`/users`, not `/user`)
-      - Are HTTP verbs used correctly? (GET reads, POST creates, PUT/PATCH updates, DELETE removes)
-      - Is nesting consistent? (`/users/{id}/posts` vs `/posts?user_id=...`)
-      - Do similar operations have similar URL patterns?
+      Identify the dominant patterns in the existing API, then bring outliers into
+      alignment. Focus on inconsistencies that would confuse API consumers. A few
+      meaningful fixes are better than many small changes.
 
-      **Responses:**
-      - Do success responses follow the same structure? (data wrapper, metadata location)
-      - Are error responses uniform? (same fields, same HTTP status code meanings)
-      - Is pagination handled consistently? (same query params, same response shape)
-      - Are empty results handled the same way? (empty array vs null vs omitted)
+      Prefer changes that affect fewer endpoints. Note any breaking changes that
+      would require client updates—these may need versioning.
 
-      **Validation:**
-      - Are required fields enforced consistently?
-      - Do similar fields have similar validation? (email fields, dates, IDs)
-      - Are validation errors structured the same way? (which field, what's wrong)
-      - Is validation documented? (OpenAPI schemas, type hints)
-
-      Where patterns are inconsistent, align with the dominant pattern. Prefer changes
-      that affect fewer endpoints. Note any breaking changes that would require client
-      updates—these may need versioning.
+      If the API is already consistent, "no changes needed" is a valid outcome.
 
       **After completing your changes**, orchestrate verification:
 
@@ -60,35 +54,22 @@ modes:
 
   - name: propagation
     prompt: |
-      Ensure API callers, tests, and docs match the actual API contracts.
+      API consumers should match what the API actually does. When internal callers,
+      tests, and documentation drift from the implementation, bugs hide and users
+      get confused.
 
-      APIs have multiple consumers: internal code that calls them, tests that
-      exercise them, and documentation that describes them. When these drift
-      apart, bugs hide and users get confused.
+      API consumers that need to stay synchronized:
+      - **Internal callers**: Request payloads, response handling, error handling
+      - **Tests**: Payloads, assertions, error case expectations
+      - **Documentation**: Parameters, responses, examples
 
-      Survey the codebase for mismatches:
+      The endpoint implementation is the source of truth. For each mismatch, update
+      the consumer to match the actual API behavior.
 
-      **Internal callers**: Find code that calls API endpoints. Verify:
-      - Request payloads match current parameter requirements
-      - Response handling matches current response shapes
-      - Error handling matches current error responses
+      Focus on mismatches that would cause failures or confusion. Run tests after
+      changes to verify fixes.
 
-      **Tests**: Find API tests. Verify:
-      - Test payloads match current validation rules
-      - Assertions match current response structures
-      - Error case tests match current error behavior
-
-      **Documentation**: Find API docs (OpenAPI, markdown, docstrings). Verify:
-      - Documented parameters match implementation
-      - Documented responses match actual responses
-      - Examples are valid and current
-
-      For each mismatch, update the caller / test / doc to match the actual API.
-      The endpoint implementation is the source of truth.
-
-      Run tests after changes to verify fixes.
-
-      If everything is already consistent, "no changes needed" is a valid outcome.
+      If everything is already synchronized, "no changes needed" is a valid outcome.
 
       **After completing your changes**, orchestrate verification:
 

@@ -18,19 +18,21 @@ prompt_suffix: |
 modes:
   - name: quality
     prompt: |
-      Review and improve the documentation in this codebase.
+      Good documentation is accurate, navigable, and clear. It respects readers'
+      time, uses consistent terminology, and doesn't repeat itself unnecessarily.
 
-      Good documentation is accurate, navigable, and clear. It respects readers' time,
-      uses consistent terminology, and doesn't repeat itself unnecessarily.
+      Documentation that serves readers well:
+      - Matches what the code actually does
+      - Has clear structure that's easy to navigate
+      - Uses precise, concise prose
+      - Avoids redundancy that adds no value
 
       Before editing any documentation, read the corresponding source code to verify
       current behavior.
 
-      Make improvements where you find:
-      - Claims that don't match the code
-      - Structure that's hard to navigate
-      - Prose that could be clearer or tighter
-      - Redundancy that adds no value
+      Focus on improvements that readers will notice. A few meaningful fixes—
+      correcting inaccuracies, clarifying confusing sections—are better than
+      many minor tweaks.
 
       Leave alone what already works. "No changes needed" is a valid outcome.
 
@@ -54,19 +56,18 @@ modes:
 
   - name: coherence
     prompt: |
-      Ensure the documentation remains coherent and doesn't explode in scope.
+      Coherent documentation reads as a unified whole. Topics appear once, in the
+      right place. Readers can navigate without encountering redundancy or gaps.
 
-      Documentation tends to grow. Each improvement adds a sentence, a section, a file.
-      Without counter-pressure, docs become bloated and hard to navigate.
-
-      Review the documentation as a whole:
-      - Is there significant overlap between files? Consolidate.
-      - Are there sections that say the same thing differently? Pick one.
-      - Is the scope appropriate? Remove content that doesn't belong.
-      - Does the structure make sense? Reorganize if navigation is confusing.
+      Signs of coherence problems:
+      - Significant overlap between files (consolidate)
+      - Same thing said different ways in different places (pick one)
+      - Content that doesn't belong in its current location (move or remove)
+      - Confusing structure that makes navigation difficult (reorganize)
 
       Deletion is value. Removing redundant content is as important as improving
-      what remains.
+      what remains. A smaller, well-organized documentation set serves readers
+      better than a comprehensive but scattered one.
 
       **After completing your changes**, orchestrate verification:
 

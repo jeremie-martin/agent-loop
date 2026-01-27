@@ -30,15 +30,17 @@ prompt_suffix: |
 modes:
   - name: coverage
     prompt: |
-      Find meaningful gaps in test coverage and write tests that matter.
+      A well-tested codebase has coverage where it matters: critical paths, complex
+      logic, and places where bugs would hurt most. More tests are not better—
+      better tests are better.
 
-      Tests exist to catch bugs and document behavior. More tests are not better—
-      better tests are better. A small suite that covers critical paths beats a
-      large suite that tests trivia.
+      Meaningful test coverage means:
+      - User-facing features have tests that verify behavior
+      - Data handling code has tests including edge cases
+      - Complex logic has tests that would actually catch bugs
 
-      Focus on code where bugs would hurt most: user-facing features, data handling,
-      complex logic, and code that has broken before. Write tests that would actually
-      catch bugs, including edge cases.
+      Focus on gaps that matter. Write tests that would catch real bugs, not tests
+      that just increase coverage numbers.
 
       After writing tests, run them. If a test fails, determine whether your test
       is wrong or you've found an implementation bug. Fix incorrect tests; mark
@@ -61,11 +63,14 @@ modes:
 
   - name: consolidation
     prompt: |
-      Ensure the test suite remains lean and focused.
+      A lean test suite runs faster and fails more clearly. Tests that overlap,
+      check implementation details instead of behavior, or have excessive setup
+      all make the suite harder to maintain.
 
-      A lean test suite runs faster and fails more clearly. Look for tests that
-      overlap, tests that check implementation details rather than behavior, and
-      tests with excessive setup that obscures what's being tested.
+      Signs of tests that need consolidation:
+      - Multiple tests verifying the same behavior
+      - Tests coupled to implementation details rather than outcomes
+      - Excessive setup that obscures what's being tested
 
       Fewer, better tests. Deleting a redundant test is as valuable as adding
       a missing one.

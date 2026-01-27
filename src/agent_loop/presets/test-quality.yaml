@@ -21,15 +21,20 @@ prompt_suffix: |
 modes:
   - name: quality
     prompt: |
-      Review the test suite for quality. Good tests read as specifications—they
-      communicate what the code should do, not just that it runs.
+      Good tests read as specifications. They communicate what the code should do,
+      not just that it runs. A reader understands the tested behavior from the test
+      alone, without studying implementation details.
 
-      A reader should understand the tested behavior from the test alone, without
-      studying implementation details. Tests should be independent—running them in
-      any order produces the same result.
+      Quality tests are:
+      - Clear about what behavior they verify
+      - Independent—running in any order produces the same result
+      - Focused on outcomes, not implementation details
 
       Refactor tests that are unclear or coupled. Delete tests that are redundant
       or verify nothing meaningful. Leave alone tests that already communicate well.
+
+      Focus on the tests that would benefit most from improvement. A few clear
+      refactors are better than touching everything.
 
       **After completing your changes**, orchestrate verification:
 
@@ -46,14 +51,12 @@ modes:
 
   - name: consolidation
     prompt: |
-      Ensure the test suite doesn't explode in size or redundancy.
-
-      Test suites grow. Each feature adds tests. Without counter-pressure, you
-      end up with overlapping tests, tests for code that no longer exists, or
-      overly granular tests that could be one.
+      A focused test suite is easier to maintain and faster to run. Without
+      counter-pressure, test suites grow—overlapping tests, tests for code that
+      no longer exists, overly granular tests that could be combined.
 
       Fewer, better tests. Deleting a redundant test is as valuable as adding
-      a missing one.
+      a missing one. Focus on consolidations that meaningfully improve the suite.
 
       **After completing your changes**, orchestrate verification:
 

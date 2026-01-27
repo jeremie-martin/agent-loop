@@ -18,24 +18,17 @@ prompt_suffix: |
 modes:
   - name: patterns
     prompt: |
-      Consistent logging makes debugging possible. When every module logs
-      differently, correlating events across the system becomes guesswork.
+      Consistent logging makes debugging possible. When every module logs the
+      same way, correlating events across the system is straightforward.
 
-      Survey how logging currently works:
-      - What library? (logging, loguru, structlog, print statements)
-      - How are loggers obtained? (module-level, class-level, passed in)
-      - What patterns are most common?
+      Consistent logging means:
+      - Same library and logger acquisition pattern throughout
+      - Log levels used appropriately (DEBUG for diagnostics, INFO for milestones,
+        WARNING for handled issues, ERROR for failures)
+      - Diagnostic print statements converted to proper log calls
 
-      The dominant pattern is the standard. Fix deviations:
-      - Convert print statements to appropriate log calls (where diagnostic)
-      - Standardize logger acquisition across modules
-      - Fix log level misuse (DEBUG for errors, INFO for verbose output)
-
-      Appropriate log levels:
-      - DEBUG: Detailed diagnostic info, disabled in production
-      - INFO: Normal operation milestones
-      - WARNING: Unexpected but handled situations
-      - ERROR: Failures that affect functionality
+      Identify the dominant pattern in the existing codebase, then bring outliers
+      into alignment. Focus on inconsistencies that would make debugging harder.
 
       Leave intentional user-facing print statements alone—those aren't logs.
 
@@ -57,23 +50,14 @@ modes:
     prompt: |
       Good log messages answer: What happened? Where? With what data?
 
-      Review log messages throughout the codebase for quality:
+      Quality log messages:
+      - Include relevant context (`"Failed to process file: %s", path`)
+      - Explain what happened (`"Processed %d records"` not just `"Done"`)
+      - Never expose sensitive data (passwords, tokens, PII)
 
-      **Missing context**: Messages that don't include relevant variables.
-      Bad: `logger.error("Failed to process file")`
-      Good: `logger.error("Failed to process file: %s", path)`
-
-      **Vague messages**: Messages that don't explain what happened.
-      Bad: `logger.info("Done")`
-      Good: `logger.info("Processed %d records in %.2fs", count, elapsed)`
-
-      **Sensitive data**: Ensure logs don't expose passwords, tokens, or PII.
-      Redact or omit sensitive fields.
-
-      Add logging to important operations that currently have none:
-      - Error handling blocks (at ERROR level with exception info)
-      - External service calls (at DEBUG/INFO level)
-      - Significant state transitions
+      Focus on the messages that matter most—error cases, important operations,
+      places where debugging is difficult. A few clear improvements are better
+      than touching every log statement.
 
       Don't over-log. Every log statement has overhead. Add logs where they
       genuinely aid debugging or monitoring.

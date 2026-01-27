@@ -18,30 +18,26 @@ prompt_suffix: |
 modes:
   - name: boundaries
     prompt: |
-      Type public interfaces thoroughly. These are the contracts between modules,
-      and type checkers can verify callers use them correctly.
+      Well-typed code makes contracts explicit. Public interfaces have clear type
+      signatures, and type checkers verify callers use them correctly.
 
-      Identify public functions, methods, and classes—anything other modules import
-      and use. For each:
-      - Add parameter type annotations
-      - Add explicit return type annotations
-      - Document None returns as `-> None`
-
-      For internal code, add annotations where:
-      - The type isn't obvious from the assignment (e.g., empty containers)
-      - Multiple types could be valid and you're specifying which
-      - Complex expressions make the resulting type unclear
+      Prioritize typing:
+      - **Public interfaces**: Functions, methods, and classes other modules import.
+        These need parameter and return type annotations.
+      - **Internal code**: Add annotations where types aren't obvious—empty containers,
+        complex expressions, ambiguous assignments.
 
       Don't over-annotate. `x: int = 5` adds noise. `result: dict[str, list[Event]] = {}`
       adds clarity.
 
-      Review existing annotations for precision:
-      - Replace bare `list`, `dict`, `tuple` with parameterized versions
-      - Replace `Any` with specific types where the actual type is known
-      - Add `Optional` or `| None` where None is a valid value
+      Improve existing annotations:
+      - Replace bare `list`, `dict` with parameterized versions
+      - Replace `Any` with specific types where known
+      - Add `| None` where None is valid
 
-      The goal is types that accurately describe what the code does, not maximally
-      strict types that fight the code.
+      Focus on annotations that help catch bugs or clarify intent. The goal is
+      types that accurately describe what the code does, not maximally strict
+      types that fight the code.
 
       Run the type checker after changes to catch errors.
 
@@ -60,16 +56,18 @@ modes:
 
   - name: consistency
     prompt: |
-      Ensure type annotations are consistent across the codebase.
+      Consistent type annotations make a codebase predictable. Similar code uses
+      similar types, type aliases are consolidated, and naming conventions are
+      uniform.
 
-      Similar code should use similar types. Review for:
+      Signs of inconsistent typing:
       - Duplicate type definitions that could be consolidated
-      - Inconsistent naming (is it `UserId` or `UserID`?)
+      - Inconsistent naming (`UserId` vs `UserID`)
       - Similar functions with different annotation styles
-      - Places where type narrowing would help (isinstance checks, None guards)
 
       Consolidate type definitions. Create type aliases for complex types used in
-      multiple places. Ensure naming conventions are predictable.
+      multiple places. Focus on inconsistencies that cause confusion or make the
+      type checker less useful.
 
       Run the type checker after changes.
 

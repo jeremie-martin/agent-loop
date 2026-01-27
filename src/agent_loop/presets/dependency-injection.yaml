@@ -18,43 +18,34 @@ prompt_suffix: |
 modes:
   - name: inject
     prompt: |
-      Tight coupling makes code hard to test and hard to change. When a class
-      creates its own dependencies, you can't substitute them.
+      Well-designed code makes dependencies explicit. You can see what a class
+      needs from its constructor, and you can substitute those dependencies for
+      testing or different environments.
 
-      Find coupling that would benefit from injection:
+      Coupling patterns that benefit from injection:
+      - **Direct instantiation**: `self.db = Database()` can't use a mock
+      - **Hidden dependencies**: Imports inside functions hide what's needed
+      - **Global state**: Singletons and module-level instances are hard to isolate
 
-      **Direct instantiation**: Classes that create collaborators internally.
-      `self.db = Database()` can't be tested with a mock database.
-
-      **Hidden dependencies**: Functions that import and use modules internally.
-      Dependencies not visible from the signature require monkeypatching to test.
-
-      **Global state**: Module-level instances, singletons, deep config access.
-      Hard to isolate, hard to test, hard to reason about.
-
-      Not everything needs injection. Leave alone:
+      Leave alone:
       - Simple utility functions with no side effects
       - Value objects and data structures
       - Dependencies that are truly fixed
 
-      Apply injection using the simplest approach that works:
+      Apply injection using the simplest approach:
 
-      **Constructor injection** (preferred):
       ```python
+      # Constructor injection (preferred)
       def __init__(self, db: Database):
           self.db = db
-      ```
 
-      **Default injection** (backward compatible):
-      ```python
+      # Default injection (backward compatible)
       def __init__(self, db: Database | None = None):
           self.db = db or Database()
       ```
 
-      Push dependency creation up to callers. Eventually, dependencies are
-      created at entry points (main, app factory).
-
-      Update tests to pass dependencies explicitly instead of monkeypatching.
+      Focus on dependencies that make testing difficult. A few well-chosen
+      injections are better than applying the pattern everywhere.
 
       Don't introduce a DI framework unless the codebase already uses one.
       Manual injection is simpler and more explicit.

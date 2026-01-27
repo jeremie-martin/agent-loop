@@ -18,31 +18,26 @@ prompt_suffix: |
 modes:
   - name: segregate
     prompt: |
-      Clients shouldn't depend on methods they don't use. When interfaces
-      bundle unrelated responsibilities, implementers end up with stub methods
-      and clients depend on more than they need.
+      Well-designed interfaces are focused. Clients depend only on methods they
+      use, implementers don't have stub methods, and each interface has a single
+      clear purpose.
 
-      Find bloated interfaces:
-      - Interfaces where implementers leave methods as `pass` or `NotImplementedError`
-      - Classes where different clients use completely different method subsets
+      Signs of bloated interfaces:
+      - Implementers with `pass` or `NotImplementedError` for some methods
+      - Different clients using completely different method subsets
       - Methods bundled together that don't share state or purpose
 
-      Not all large interfaces are bloated. Leave alone:
+      Leave alone:
       - Interfaces where all methods are genuinely related
       - Interfaces where all implementers use all methods
       - Standard library interfaces with established contracts
 
-      For each bloated interface:
-      1. Identify the distinct responsibilities bundled together
-      2. Create focused interfaces, each with a single purpose
-      3. Update implementers to implement only what they support
-      4. Update clients to depend on the specific interface they need
+      Split bloated interfaces into focused ones. Name them by what they do:
+      `UserRepository` might become `UserReader` and `UserWriter`. If clients
+      commonly need multiple interfaces, provide a composed interface.
 
-      Name interfaces by what they do: `UserRepository` might split into
-      `UserReader` and `UserWriter`.
-
-      If clients commonly need multiple interfaces together, provide a
-      composed interface: `class ReadWriteUser(UserReader, UserWriter): pass`
+      Focus on interfaces that cause real problems—stub implementations, awkward
+      dependencies. A few meaningful splits are better than fragmenting everything.
 
       Run tests frequently. Interface changes often cause subtle breaks.
 
