@@ -18,31 +18,27 @@ prompt_suffix: |
 modes:
   - name: consistency
     prompt: |
-      Names should be predictable. When someone reads `getUserById`, they should
-      know what `getOrderById` looks like without checking.
+      A well-named codebase is predictable. When someone reads `getUserById`,
+      they already know what `getOrderById` looks like without checking. Similar
+      things have similar names; different things have different names.
 
-      Survey the codebase to understand existing conventions:
-      - How are functions named? Classes? Variables? Files?
-      - What's the dominant pattern for each category?
-      - Where does similar code use different names for the same concept?
+      Consistency means: one concept, one name. The same casing style throughout.
+      Verbs used the same way (get vs fetch vs retrieve—pick one). Abbreviations
+      spelled the same everywhere (user vs usr—pick one).
 
-      The dominant pattern is the standard. Identify deviations and fix them.
-      Prioritize by visibility: public APIs and class names matter most.
+      The dominant pattern in the existing codebase is the standard. Identify
+      what most code already does, then bring outliers into alignment. Prioritize
+      by visibility—public APIs and class names matter more than local variables.
 
-      Look for:
-      - Same concept, different names (user_id vs userId vs uid)
-      - Inconsistent verb usage (get vs fetch vs retrieve)
-      - Mixed casing styles (snake_case vs camelCase)
-      - Abbreviation inconsistency (usr vs user)
+      Rename to match the dominant pattern. Update all references: imports, type
+      hints, documentation, tests. Use your editor's rename refactoring when
+      available—it's safer than find-replace.
 
-      For each inconsistency you find, rename to match the dominant pattern.
-      Update all references: imports, type hints, documentation, tests.
+      Focus on changes that meaningfully improve readability. A few clear wins
+      are better than many marginal renames. If something is consistent enough
+      to not cause confusion, leave it alone.
 
-      Use your editor's rename refactoring when available—it's safer than
-      find-replace.
-
-      If something already follows convention, leave it alone. "No changes
-      needed" is a valid outcome.
+      "No changes needed" is a valid outcome.
 
       **After completing your changes**, orchestrate verification:
 

@@ -154,6 +154,151 @@ Phrases like "genuinely improve" and "don't reorganize for the sake of reorganiz
 
 ---
 
+## Target State Clarity
+
+Describe what "done" looks like rather than the steps to get there. Agents are intelligent—they can figure out *how* once they understand *what*.
+
+### Paint the Picture
+
+**Procedural** (avoid):
+```
+1. Survey the codebase
+2. Find all instances of X
+3. For each instance, check Y
+4. Apply fix Z
+```
+
+**Target-state** (prefer):
+```
+In a well-maintained codebase, X never appears unguarded. Every instance
+either uses Y or has documented justification.
+```
+
+The agent deduces the survey, the search, and the fixes. You've told it what good looks like.
+
+### State the Goal, Not the Audit
+
+Instead of "Find A, B, and C patterns and fix them," try "A codebase free of pattern X means..."—then describe what that looks like. The checklist can follow as guidance, but the framing puts focus on the outcome.
+
+### Exception: Technical Specificity
+
+Some domains require specificity because the agent may not know the technical patterns. Security vulnerabilities are a prime example:
+
+- Agents may not know that `shell=True` enables injection
+- Agents may not recognize parameterized query syntax
+- Specific attack patterns need explicit mention
+
+In these cases, include technical details—but frame them as "what good code does" rather than "steps to perform."
+
+---
+
+## Implicit Impact Framing
+
+The language you use shapes how agents approach work. Certain phrases encourage meaningful, high-value changes without mentioning iteration.
+
+### Language That Encourages Impact
+
+| Instead of | Use |
+|------------|-----|
+| "Find all instances of..." | "Address the most impactful cases of..." |
+| "Fix every X" | "Focus on changes that meaningfully improve..." |
+| "Be thorough" | "Prioritize by impact" |
+| "Check everything" | "Focus on what matters most" |
+
+### Quality Signals
+
+Phrases that prime for quality over quantity:
+
+- "Prioritize changes that readers will notice"
+- "Focus on the improvements that matter"
+- "A few well-chosen fixes are better than many marginal ones"
+- "Address clear wins first"
+
+These naturally encourage the agent to make meaningful progress without trying to do everything.
+
+### Avoid Exhaustiveness Framing
+
+"Comprehensive," "complete," and "exhaustive" prime agents toward quantity. The agent tries to find *everything* rather than making *progress*. Use "effective," "meaningful," or "impactful" instead.
+
+**Anti-pattern**:
+```yaml
+prompt: "Find and fix ALL naming inconsistencies. Be thorough and comprehensive."
+# Result: Agent attempts 50 marginal renames, breaks things, or times out.
+```
+
+**Better**:
+```yaml
+prompt: "Focus on naming inconsistencies that hurt readability. A few clear fixes are better than many marginal ones."
+# Result: Agent makes meaningful progress that accumulates across invocations.
+```
+
+---
+
+## Quality Over Quantity
+
+Each invocation should leave the codebase better, not "completely fixed." Agents that try to do everything often do nothing well.
+
+### Encourage Meaningful Progress
+
+Prompts that work well across multiple invocations:
+
+- "Make the changes that most improve X" (not "fix all X problems")
+- "Address clear violations" (not "ensure complete compliance")
+- "Focus on what will make the biggest difference" (not "be thorough")
+
+### The Progress Mindset
+
+Good framing: "After your changes, the codebase should be measurably better at X."
+
+This encourages impactful work without demanding perfection. An agent making three meaningful improvements is better than one attempting (and failing at) twenty.
+
+### Natural Convergence
+
+With quality-focused framing, each invocation picks the most valuable remaining work. Early passes fix obvious issues; later passes have less to do. This is healthy convergence, not failure.
+
+---
+
+## When Specificity Helps vs Hurts
+
+Not all prompts benefit from the same level of detail. Match specificity to the task.
+
+### Tasks That Benefit from Holistic Framing
+
+- **Naming consistency**: The agent can survey and decide what's "dominant"
+- **Documentation quality**: The agent knows good writing when it sees it
+- **Code style**: The agent understands readability
+- **Dead code removal**: The agent can trace references
+
+For these, describe the target state and let the agent judge.
+
+### Tasks That Need Specificity
+
+- **Security hardening**: Specific vulnerability patterns must be named
+- **API consistency**: Specific conventions must be stated if non-obvious
+- **Framework patterns**: The agent may not know framework-specific best practices
+
+For these, provide technical details—but frame them as "what good looks like" not "steps to follow."
+
+### The Hybrid Approach
+
+Many tasks benefit from both:
+1. **Framing**: A holistic target-state description
+2. **Guidance**: Specific patterns or examples as reference
+
+```yaml
+# Holistic framing first
+A secure codebase has no injection points. User input never flows
+directly into dangerous operations without validation.
+
+# Technical guidance as reference
+Common patterns to address:
+- SQL with string interpolation → parameterized queries
+- Shell commands with user input → subprocess with array args
+- File paths from user input → validate and resolve first
+```
+
+---
+
 ## Preventing Explosion
 
 Work tends to grow. Each improvement adds a sentence, a function, a file. Without counter-pressure, codebases become bloated.
@@ -197,7 +342,9 @@ Before finalizing a prompt, verify:
 - [ ] **Stateless**: Would this work if it were the agent's first and only task?
 - [ ] **Self-contained**: Does it discover AND act, or does it depend on another mode's output?
 - [ ] **No jargon**: No "cycle," "iteration," "previous mode," "as before"?
+- [ ] **Target-state framed**: Does it describe what "done" looks like rather than steps?
+- [ ] **Impact language**: Uses "meaningful," "clear wins" not "comprehensive," "thorough"?
+- [ ] **Quality over quantity**: Encourages few impactful changes over many marginal ones?
 - [ ] **Verification included**: Full 3-step verification written out explicitly?
 - [ ] **Inaction validated**: Does it say "no changes needed is valid"?
 - [ ] **Deletion permitted**: Does it frame removal as valuable, not just allowed?
-- [ ] **No expansion triggers**: No "comprehensive," "exhaustive," "thorough"?

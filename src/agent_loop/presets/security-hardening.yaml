@@ -18,30 +18,32 @@ prompt_suffix: |
 modes:
   - name: injection
     prompt: |
-      Injection vulnerabilities let attackers run code through your inputs.
-      Find and fix them.
+      A secure codebase has no injection points. User input never flows
+      directly into dangerous operations—it's always sanitized, escaped, or
+      parameterized first.
 
-      Search for patterns where user input flows into dangerous operations:
+      Injection vulnerabilities to address:
 
       **SQL injection**: String concatenation or f-strings in SQL queries.
-      Fix: Use parameterized queries.
+      Secure code uses parameterized queries exclusively.
 
-      **Command injection**: User input passed to shell commands.
-      Fix: Use subprocess with array arguments, avoid shell=True.
+      **Command injection**: User input in shell commands.
+      Secure code uses subprocess with array arguments, never shell=True with
+      untrusted input.
 
-      **Path traversal**: User input in file paths without validation.
-      Fix: Validate paths, resolve and check prefix, reject `..` sequences.
+      **Path traversal**: User input in file paths.
+      Secure code validates paths, resolves them, and confirms they're within
+      allowed directories.
 
       **Template injection**: User input in template strings.
-      Fix: Use safe template rendering with auto-escaping.
+      Secure code uses template engines with auto-escaping enabled.
 
-      For each vulnerability found:
-      1. Verify it's actually exploitable (trace the data flow)
-      2. Apply the appropriate fix
-      3. Run tests to ensure functionality is preserved
+      Focus on the most impactful vulnerabilities—those with clear data flow
+      from user input to dangerous operation. Verify each issue is actually
+      exploitable before fixing; trace the data flow.
 
-      Don't introduce new vulnerabilities while fixing others. Test changes
-      carefully.
+      Don't introduce new vulnerabilities while fixing others. Run tests to
+      ensure functionality is preserved.
 
       If no injection vulnerabilities exist, "no changes needed" is valid.
 
@@ -60,28 +62,29 @@ modes:
   - name: boundaries
     prompt: |
       Security happens at boundaries—where untrusted data enters the system.
-      Strengthen those boundaries.
+      A well-defended codebase validates input at entry points, checks
+      authorization consistently, and never leaks sensitive data.
 
-      Review trust boundaries for:
+      Trust boundary issues to address:
 
-      **Missing input validation**: API endpoints, CLI arguments, file parsing,
-      form submissions. Validate types, ranges, formats at the boundary.
+      **Missing input validation**: API endpoints, CLI arguments, file parsing
+      should validate types, ranges, and formats before processing.
 
       **Authentication gaps**: Endpoints or operations missing auth checks.
-      Sensitive data accessible without proper authentication.
+      Sensitive operations should require authentication.
 
-      **Authorization gaps**: Users accessing resources they shouldn't. Missing
-      ownership checks. Privilege escalation paths.
+      **Authorization gaps**: Missing ownership checks allow users to access
+      resources they shouldn't. Every resource access should verify permission.
 
-      **Data exposure**: Sensitive data in logs, error messages, or API responses.
-      Secrets in version control. Overly permissive CORS.
+      **Data exposure**: Sensitive data in logs, error messages, or responses.
+      User-facing errors should be generic; details go to internal logs only.
 
-      **Credential handling**: Hardcoded secrets (move to env vars). Weak
-      password storage (use bcrypt/argon2). Tokens in URLs.
+      **Credential handling**: Hardcoded secrets should be environment variables.
+      Passwords should use strong hashing (bcrypt/argon2). Tokens shouldn't
+      appear in URLs.
 
-      For each issue found, apply the appropriate fix. Prefer allowlists over
-      denylists for validation. Return generic errors to users, log details
-      internally.
+      Focus on clear security gaps—issues where the fix is unambiguous. Prefer
+      allowlists over denylists for validation.
 
       If boundaries are already well-guarded, "no changes needed" is valid.
 

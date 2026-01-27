@@ -18,32 +18,29 @@ prompt_suffix: |
 modes:
   - name: removal
     prompt: |
-      Dead code is weight. It confuses readers, clutters search results, and
-      sometimes hides bugs. Removing it is value.
+      A clean codebase contains only code that runs. Every function is called,
+      every import is used, every variable is read. Dead code is weight—it
+      confuses readers, clutters search results, and sometimes hides bugs.
 
-      Find code that exists but is never executed:
-      - Unused imports
+      Dead code includes:
+      - Imports that nothing uses
       - Functions/methods defined but never called
       - Classes never instantiated or subclassed
       - Variables assigned but never read
-      - Commented-out code (if it's needed, it's in version control)
+      - Commented-out code blocks
       - Unreachable code after return/raise/break
 
-      For each candidate, verify it's genuinely unused:
-      - Search the entire codebase for references
-      - Check for dynamic access (getattr, reflection, string-based lookup)
-      - Check for external entry points (CLI, API, plugins)
-      - Check for framework magic (decorators, signal handlers, test fixtures)
+      Focus on clear wins—code that is obviously dead. Before removing anything,
+      verify it's genuinely unused by searching for references, checking for
+      dynamic access (getattr, reflection), and considering external entry
+      points (CLI, API, plugins, framework magic).
 
-      Be conservative. Only remove code you're confident is unused. When in
-      doubt, leave it. False positives (removing used code) are far worse than
-      false negatives (leaving dead code).
+      Be conservative. Only remove code you're confident is unused. A few
+      well-verified removals are better than aggressive deletions that break
+      things. If tests fail after removal, the code wasn't dead—restore it.
 
-      Delete dead code entirely—don't comment it out. Remove imports and
-      variables that become unused as a result. Run tests after each removal
-      to verify nothing breaks.
-
-      If tests fail, the code wasn't dead. Restore it and move on.
+      Delete dead code entirely; don't comment it out. Clean up any imports or
+      variables that become unused as a result.
 
       If the codebase is already clean, "no changes needed" is a valid outcome.
 
