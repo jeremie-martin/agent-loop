@@ -216,7 +216,12 @@ class TestBuiltinPresets:
 
     def test_presets_use_self_review_not_external_review(self):
         """Presets embed self-review in prompts instead of external review config."""
-        for preset_name in ["docs-review", "frontend-style", "test-quality"]:
+        # Presets with 3-step review (includes filter sub-agent)
+        three_step_presets = ["security-hardening", "dependency-injection", "interface-segregation"]
+        # Presets with 2-step review (no filter, for factual/deterministic tasks)
+        two_step_presets = ["docs-review", "dead-code"]
+
+        for preset_name in three_step_presets + two_step_presets:
             path = find_preset(preset_name)
             preset = load_preset(path)
 
@@ -226,7 +231,13 @@ class TestBuiltinPresets:
             # Self-review pattern in first mode
             first_mode = preset.modes[0]
             assert "sub-agent" in first_mode.prompt.lower(), f"{preset_name} missing sub-agent instruction"
-            assert "filter" in first_mode.prompt.lower(), f"{preset_name} missing filter instruction"
+
+            # Only 3-step presets should have filter
+            if preset_name in three_step_presets:
+                assert "filter" in first_mode.prompt.lower(), f"{preset_name} should have filter (3-step)"
+            else:
+                # 2-step presets should NOT have filter
+                assert "filter" not in first_mode.prompt.lower(), f"{preset_name} should not have filter (2-step)"
 
     def test_suffix_applied_to_all_modes(self):
         """Suffix appears in full prompt for every mode."""

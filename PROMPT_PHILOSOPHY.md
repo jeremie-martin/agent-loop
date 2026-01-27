@@ -87,25 +87,40 @@ Write prompts as standalone tasks.
 
 Each prompt should include its own verification steps. Don't say "apply the same verification as before"—there is no "before."
 
-### The 3-Step Pattern
+### Sub-agents Need Context
 
-Every mode should end with explicit verification:
+Sub-agents start fresh—they haven't read the documentation the main agent read. The prompt_prefix instructs the main agent to:
+
+1. Give sub-agents the exact file paths to relevant documentation
+2. Explicitly instruct them to read those files completely before starting
+3. Include any other specific files they need to examine
+
+Do not just tell sub-agents to "read the documentation"—they often won't. Give them the paths directly.
+
+**Future exploration**: An alternative approach is having the main agent summarize relevant conventions and pass them directly. This could be more efficient but risks missing important details. Worth experimenting with.
+
+### Verification Patterns
+
+**3-step pattern** (for subjective/design tasks where over-engineering is a risk):
 
 ```
-**After completing your changes**, orchestrate verification:
-
-1. Spawn a sub-agent to review your work. Give it:
-   - [Specific task description]
-   - The files you modified
-   - [Specific things to check]
-
-2. Spawn a filter sub-agent. Give it the verification feedback and ask:
-   which concerns are genuine issues vs [category of false positives]?
-
-3. Address filtered feedback, then commit.
+1. Spawn a review sub-agent with: file paths to docs, files modified, what to check
+2. Spawn a filter sub-agent to separate genuine issues from over-caution
+3. Address filtered feedback, then commit
 ```
 
-This must be written out fully each time. The agent doesn't remember that other prompts had similar verification steps.
+Use for: security hardening, dependency injection, interface design, API contracts, type boundaries, config externalization, error handling patterns.
+
+**2-step pattern** (for factual/deterministic tasks):
+
+```
+Spawn a review sub-agent with: file paths to docs, files modified, what to check
+Address the feedback, then commit
+```
+
+Use for: documentation review, dead code removal, propagation/sync tasks, token adoption, log message quality, test consolidation.
+
+The filter step prevents over-defensive feedback from causing unnecessary changes. Skip it when the verification is more factual ("does this match?" vs "is this good design?").
 
 ---
 
