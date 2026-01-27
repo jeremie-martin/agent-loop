@@ -40,6 +40,8 @@ modes:
       Focus on the tests that would benefit most from improvement. A few clear
       refactors are better than touching everything.
 
+      "No changes needed" is a valid outcome.
+
       **After completing your changes**, orchestrate verification:
 
       1. Spawn a sub-agent to review your work. Give it:
@@ -61,6 +63,8 @@ modes:
 
       Fewer, better tests. Deleting a redundant test is as valuable as adding
       a missing one. Focus on consolidations that meaningfully improve the suite.
+
+      "No changes needed" is a valid outcome.
 
       **After completing your changes**, orchestrate verification:
 

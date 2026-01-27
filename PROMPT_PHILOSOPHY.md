@@ -60,14 +60,6 @@ Mode 2 reads actual files from disk, not mode 1's "memory."
 
 Mode 1 *committed*, so `git diff` shows nothing. Mode 2 sees an empty diff.
 
-### Artifacts Must Actually Exist
-
-If a prompt says "read X," X must exist when the agent runs. Consider:
-
-- **Git diff**: Shows uncommitted changes only. If previous mode committed, diff is empty.
-- **Git log**: Shows commits, but which ones? The agent doesn't know which are "recent."
-- **Files**: Reliable if created by a previous mode, but fragile if the file path isn't predictable.
-
 **Prefer self-contained modes** that discover from the codebase's current state rather than inferring what changed.
 
 ### No Framework Jargon
@@ -97,8 +89,6 @@ Sub-agents start fresh—they haven't read the documentation the main agent read
 
 Do not just tell sub-agents to "read the documentation"—they often won't. Give them the paths directly.
 
-**Future exploration**: An alternative approach is having the main agent summarize relevant conventions and pass them directly. This could be more efficient but risks missing important details. Worth experimenting with.
-
 ### Verification Patterns
 
 **3-step pattern** (for subjective/design tasks where over-engineering is a risk):
@@ -124,54 +114,9 @@ The filter step prevents over-defensive feedback from causing unnecessary change
 
 ---
 
-## Trusting Agent Judgment
+## Outcome-Focused Prompts
 
-Smart agents respond better to understanding what "good" looks like than to being told what to do.
-
-### Describe Outcomes, Not Steps
-
-Say "concepts appear once" instead of "remove duplicates." The agent deduces which duplicates to remove and how to consolidate, producing better judgments.
-
-### Prefer Holistic Prompts
-
-Few well-scoped prompts work better than many narrow prompts that micromanage.
-
-- **Narrow** (avoid): separate modes for accuracy, structure, clarity
-- **Holistic** (prefer): one mode for quality that addresses all three
-
-Holistic prompts reveal the full picture and enable richer trade-offs.
-
-### Multi-Mode Design
-
-When multiple modes are appropriate, each should be a **different lens on the same goal**, not sequential steps of one process.
-
-**Good** (independent lenses):
-- Mode 1: "Improve documentation quality" (accuracy, clarity)
-- Mode 2: "Ensure documentation coherence" (structure, redundancy)
-
-Both modes are complete tasks. Either can run first. Neither depends on the other.
-
-**Bad** (sequential steps):
-- Mode 1: "Identify documentation problems"
-- Mode 2: "Fix the identified problems"
-
-Mode 2 is useless without mode 1's output.
-
-### Frame Quality Positively
-
-"Keep it short" feels restrictive. "Every section earns its place" treats tightness as quality. The agent aims for quality, not rules.
-
-Phrases like "reads as a coherent whole" put agents in an editor's mindset—shaping rather than adding.
-
-### Guard Against Over-Correction
-
-Phrases like "genuinely improve" and "don't reorganize for the sake of reorganizing" prevent zealotry.
-
----
-
-## Target State Clarity
-
-Describe what "done" looks like rather than the steps to get there. Agents are intelligent—they can figure out *how* once they understand *what*.
+Smart agents respond better to understanding what "good" looks like than to being told what to do. Describe the target state, not the steps to get there.
 
 ### Paint the Picture
 
@@ -191,61 +136,38 @@ either uses Y or has documented justification.
 
 The agent deduces the survey, the search, and the fixes. You've told it what good looks like.
 
-### State the Goal, Not the Audit
+### Prefer Holistic Prompts
 
-Instead of "Find A, B, and C patterns and fix them," try "A codebase free of pattern X means..."—then describe what that looks like. The checklist can follow as guidance, but the framing puts focus on the outcome.
+Few well-scoped prompts work better than many narrow prompts that micromanage. When multiple modes are appropriate, each should be a **different lens on the same goal**, not sequential steps of one process.
 
-### Exception: Technical Specificity
+**Good** (independent lenses):
+- Mode 1: "Improve documentation quality" (accuracy, clarity)
+- Mode 2: "Ensure documentation coherence" (structure, redundancy)
 
-Some domains require specificity because the agent may not know the technical patterns. Security vulnerabilities are a prime example:
+Both modes are complete tasks. Either can run first. Neither depends on the other.
 
-- Agents may not know that `shell=True` enables injection
-- Agents may not recognize parameterized query syntax
-- Specific attack patterns need explicit mention
+### When Specificity Helps
 
-In these cases, include technical details—but frame them as "what good code does" rather than "steps to perform."
+Some domains require technical details because agents may not know the patterns. Security vulnerabilities are a prime example—agents may not know that `shell=True` enables injection.
 
----
+For these tasks, use a **hybrid approach**:
 
-## Implicit Impact Framing
-
-The language you use shapes how agents approach work. Certain phrases encourage meaningful, high-value changes without mentioning iteration.
-
-### Language That Encourages Impact
-
-| Instead of | Use |
-|------------|-----|
-| "Find all instances of..." | "Address the most impactful cases of..." |
-| "Fix every X" | "Focus on changes that meaningfully improve..." |
-| "Be thorough" | "Prioritize by impact" |
-| "Check everything" | "Focus on what matters most" |
-
-### Quality Signals
-
-Phrases that prime for quality over quantity:
-
-- "Prioritize changes that readers will notice"
-- "Focus on the improvements that matter"
-- "A few well-chosen fixes are better than many marginal ones"
-- "Address clear wins first"
-
-These naturally encourage the agent to make meaningful progress without trying to do everything.
-
-### Avoid Exhaustiveness Framing
-
-"Comprehensive," "complete," and "exhaustive" prime agents toward quantity. The agent tries to find *everything* rather than making *progress*. Use "effective," "meaningful," or "impactful" instead.
-
-**Anti-pattern**:
 ```yaml
-prompt: "Find and fix ALL naming inconsistencies. Be thorough and comprehensive."
-# Result: Agent attempts 50 marginal renames, breaks things, or times out.
+# Holistic framing first
+A secure codebase has no injection points. User input never flows
+directly into dangerous operations without validation.
+
+# Technical guidance as reference
+Common patterns to address:
+- SQL with string interpolation → parameterized queries
+- Shell commands with user input → subprocess with array args
 ```
 
-**Better**:
-```yaml
-prompt: "Focus on naming inconsistencies that hurt readability. A few clear fixes are better than many marginal ones."
-# Result: Agent makes meaningful progress that accumulates across invocations.
-```
+Frame technical details as "what good code does" rather than "steps to perform."
+
+### Frame Quality Positively
+
+"Keep it short" feels restrictive. "Every section earns its place" treats tightness as quality. Phrases like "genuinely improve" and "don't reorganize for the sake of reorganizing" prevent zealotry.
 
 ---
 
@@ -253,13 +175,16 @@ prompt: "Focus on naming inconsistencies that hurt readability. A few clear fixe
 
 Each invocation should leave the codebase better, not "completely fixed." Agents that try to do everything often do nothing well.
 
-### Encourage Meaningful Progress
+### Impact-Focused Language
 
-Prompts that work well across multiple invocations:
+| Instead of | Use |
+|------------|-----|
+| "Find all instances of..." | "Address the most impactful cases of..." |
+| "Fix every X" | "Focus on changes that meaningfully improve..." |
+| "Be thorough" | "Prioritize by impact" |
+| "Comprehensive," "exhaustive" | "Meaningful," "effective" |
 
-- "Make the changes that most improve X" (not "fix all X problems")
-- "Address clear violations" (not "ensure complete compliance")
-- "Focus on what will make the biggest difference" (not "be thorough")
+Phrases that prime for quality: "A few well-chosen fixes are better than many marginal ones," "Address clear wins first."
 
 ### The Progress Mindset
 
@@ -273,50 +198,9 @@ With quality-focused framing, each invocation picks the most valuable remaining 
 
 ---
 
-## When Specificity Helps vs Hurts
-
-Not all prompts benefit from the same level of detail. Match specificity to the task.
-
-### Tasks That Benefit from Holistic Framing
-
-- **Naming consistency**: The agent can survey and decide what's "dominant"
-- **Documentation quality**: The agent knows good writing when it sees it
-- **Code style**: The agent understands readability
-- **Dead code removal**: The agent can trace references
-
-For these, describe the target state and let the agent judge.
-
-### Tasks That Need Specificity
-
-- **Security hardening**: Specific vulnerability patterns must be named
-- **API consistency**: Specific conventions must be stated if non-obvious
-- **Framework patterns**: The agent may not know framework-specific best practices
-
-For these, provide technical details—but frame them as "what good looks like" not "steps to follow."
-
-### The Hybrid Approach
-
-Many tasks benefit from both:
-1. **Framing**: A holistic target-state description
-2. **Guidance**: Specific patterns or examples as reference
-
-```yaml
-# Holistic framing first
-A secure codebase has no injection points. User input never flows
-directly into dangerous operations without validation.
-
-# Technical guidance as reference
-Common patterns to address:
-- SQL with string interpolation → parameterized queries
-- Shell commands with user input → subprocess with array args
-- File paths from user input → validate and resolve first
-```
-
----
-
 ## Preventing Explosion
 
-Work tends to grow. Each improvement adds a sentence, a function, a file. Without counter-pressure, codebases become bloated.
+Work tends to grow. Without counter-pressure, codebases become bloated.
 
 ### Deletion Is Value
 
@@ -326,21 +210,11 @@ Removing redundant content is as valuable as adding. Agents default to adding un
 - "Deleting a redundant test is as valuable as adding a missing one"
 - "Fewer, better tests"
 
-### Avoid Expansion Trigger Words
+### Validate Inaction
 
-"Comprehensive," "exhaustive," "thorough," "complete coverage"—these prime the agent toward more-is-better. Use "authoritative," "accurate," "coherent" instead.
+"If something already works well, leave it alone" and "'No changes needed' is a valid outcome."
 
-### Use Neutral Action Verbs
-
-"Correcting, clarifying, consolidating, or restructuring"—all valid moves. No hierarchy where adding is default and removing requires justification.
-
-### Embrace Diminishing Returns
-
-Iterations naturally approach equilibrium—after several passes, there's less to do. This is success.
-
-**Do** validate inaction: "If something already works well, leave it alone" and "'No changes needed' is a valid outcome."
-
-**Don't** imply every iteration must produce changes. Agents should report "nothing to do" rather than invent work.
+Don't imply every iteration must produce changes. Agents should report "nothing to do" rather than invent work.
 
 ---
 
@@ -360,6 +234,6 @@ Before finalizing a prompt, verify:
 - [ ] **Target-state framed**: Does it describe what "done" looks like rather than steps?
 - [ ] **Impact language**: Uses "meaningful," "clear wins" not "comprehensive," "thorough"?
 - [ ] **Quality over quantity**: Encourages few impactful changes over many marginal ones?
-- [ ] **Verification included**: Full 3-step verification written out explicitly?
+- [ ] **Verification included**: Verification pattern written out explicitly?
 - [ ] **Inaction validated**: Does it say "no changes needed is valid"?
 - [ ] **Deletion permitted**: Does it frame removal as valuable, not just allowed?

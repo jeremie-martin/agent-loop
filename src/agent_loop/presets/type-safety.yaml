@@ -45,6 +45,8 @@ modes:
 
       Run the type checker after changes to catch errors.
 
+      "No changes needed" is a valid outcome.
+
       **After completing your changes**, orchestrate verification:
 
       1. Spawn a sub-agent to review your work. Give it:
@@ -74,6 +76,8 @@ modes:
       type checker less useful.
 
       Run the type checker after changes.
+
+      "No changes needed" is a valid outcome.
 
       **After completing your changes**, orchestrate verification:
 

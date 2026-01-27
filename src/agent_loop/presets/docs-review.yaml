@@ -65,6 +65,8 @@ modes:
       what remains. A smaller, well-organized documentation set serves readers
       better than a comprehensive but scattered one.
 
+      "No changes needed" is a valid outcome.
+
       **After completing your changes**, orchestrate verification:
 
       Spawn a sub-agent to review your work. Give it:

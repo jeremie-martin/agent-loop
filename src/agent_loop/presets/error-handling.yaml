@@ -41,6 +41,8 @@ modes:
       Improve messages that are vague ("Error occurred") or lack context. For
       user-facing errors, avoid exposing internal details.
 
+      "No changes needed" is a valid outcome.
+
       **After completing your changes**, orchestrate verification:
 
       1. Spawn a sub-agent to review your work. Give it:

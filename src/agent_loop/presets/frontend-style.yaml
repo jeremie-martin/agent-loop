@@ -40,6 +40,8 @@ modes:
       to be systematic. Someone new should be able to look at the tokens and understand
       the logic.
 
+      "No changes needed" is a valid outcome.
+
       **After completing your changes**, orchestrate verification:
 
       1. Spawn a sub-agent to review your work. Give it:
@@ -69,6 +71,8 @@ modes:
 
       Focus on the most visible inconsistencies first. A few clear wins are better
       than touching every file. Verify each modified file still parses correctly.
+
+      "No changes needed" is a valid outcome.
 
       **After completing your changes**, orchestrate verification:
 
