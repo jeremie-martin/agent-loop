@@ -37,6 +37,10 @@ modes:
       - Implementation details that shouldn't vary
       - Values that would break the system if changed
 
+      Not every value needs externalization. Over-configured codebases are hard to
+      understand—dozens of settings with unclear purposes. Only externalize values
+      that genuinely vary between deployments.
+
       Use the existing configuration pattern (environment variables, config file,
       settings module). If nothing exists, prefer environment variables for secrets
       and simple settings.

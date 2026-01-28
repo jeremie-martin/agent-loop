@@ -33,6 +33,8 @@ modes:
 
       Identify the dominant pattern in the existing codebase, then bring outliers
       into alignment. Focus on inconsistencies that would make debugging harder.
+      This mode is about consistency, not coverage—don't add new log statements,
+      just standardize existing ones.
 
       Leave intentional user-facing print statements alone—those aren't logs.
 
