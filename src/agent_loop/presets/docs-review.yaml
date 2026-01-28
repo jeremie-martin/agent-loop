@@ -78,7 +78,7 @@ modes:
       - Same thing said different ways in different places (pick one, delete the rest)
       - Content that doesn't belong in its current location (move or remove—prefer remove)
       - Too many documentation files (consolidate—one well-organized file beats three scattered ones)
-      - Excessive cross-references (every file linking to every other file is noise, not navigation)
+      - Cross-references that don't help readers (links should guide, not overwhelm)
       - Confusing structure that makes navigation difficult (simplify, don't add navigation aids)
 
       Deletion is value. Removing redundant content is as important as improving
@@ -94,7 +94,6 @@ modes:
       - The paths to relevant documentation files and instruct it to read them first
       - The files you modified
       - Instruction to check: did consolidation lose important content?
-        Is navigation clearer? Can files be merged? Are there excessive
-        "Related Documentation" or "See Also" sections that link to everything?
+        Is navigation clearer? Can files be merged?
 
       Address the feedback, then commit.
