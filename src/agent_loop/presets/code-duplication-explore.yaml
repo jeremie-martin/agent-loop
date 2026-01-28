@@ -66,11 +66,14 @@ modes:
 
       **STEP 4: REVIEW**
 
-      Spawn a review sub-agent. Give it:
-      - The documentation file paths
-      - The files you modified
-      - Summary of exploration (which duplicates were true vs false)
-      - Instruction to check: are abstractions correct? Do all call sites
-        work? Any cases where the "duplicates" actually differed?
+      1. Spawn a review sub-agent. Give it:
+         - The documentation file paths
+         - The files you modified
+         - Summary of exploration findings (which duplicates were true vs false)
+         - Instruction to check: are abstractions correct? Do all call sites
+           work? Any cases where the "duplicates" actually differed? Do tests pass?
 
-      Address the feedback, then commit.
+      2. Spawn a filter sub-agent. Give it the review feedback and ask:
+         which concerns are genuine issues vs opinions about abstraction style?
+
+      3. Address filtered feedback, then commit.

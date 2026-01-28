@@ -65,14 +65,17 @@ modes:
 
       **STEP 4: REVIEW**
 
-      Spawn a review sub-agent. Give it:
-      - The documentation file paths
-      - The files you modified
-      - Summary of data flow exploration (what paths exist, what's protected)
-      - Instruction to check: are fixes correct? Any paths missed?
-        Any over-hardening of internal code? Do tests pass?
+      1. Spawn a review sub-agent. Give it:
+         - The documentation file paths
+         - The files you modified
+         - Summary of exploration findings (what data flow paths exist, what's protected)
+         - Instruction to check: are fixes correct? Any paths missed?
+           Any over-hardening of internal code? Do tests pass?
 
-      Address the feedback, then commit.
+      2. Spawn a filter sub-agent. Give it the review feedback and ask:
+         which concerns are genuine security issues vs theoretical?
+
+      3. Address filtered feedback, then commit.
 
   - name: boundaries
     prompt: |
@@ -117,11 +120,14 @@ modes:
 
       **STEP 4: REVIEW**
 
-      Spawn a review sub-agent. Give it:
-      - The documentation file paths
-      - The files you modified
-      - Summary of boundary exploration (what boundaries exist, how enforced)
-      - Instruction to check: is validation correct? Any boundaries missed?
-        Is error handling appropriate? Do tests pass?
+      1. Spawn a review sub-agent. Give it:
+         - The documentation file paths
+         - The files you modified
+         - Summary of exploration findings (what boundaries exist, how enforced)
+         - Instruction to check: is validation correct? Any boundaries missed?
+           Is error handling appropriate? Do tests pass?
 
-      Address the feedback, then commit.
+      2. Spawn a filter sub-agent. Give it the review feedback and ask:
+         which concerns are genuine security issues vs theoretical?
+
+      3. Address filtered feedback, then commit.

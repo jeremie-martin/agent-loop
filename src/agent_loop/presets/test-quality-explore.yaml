@@ -19,6 +19,10 @@ prompt_suffix: |
   Do not use the "question" tool or any tool requiring user input.
   Stage and commit your changes at the end with a descriptive message.
 
+  CRITICAL: If a test that was passing before your changes now fails, you
+  introduced a regression. Fix your changes—do not weaken the test's assertions
+  to make it pass.
+
 modes:
   - name: assertions
     prompt: |
@@ -60,14 +64,17 @@ modes:
 
       **STEP 4: REVIEW**
 
-      Spawn a review sub-agent. Give it:
-      - The documentation file paths
-      - The test files you modified
-      - Summary of what you learned from exploration (what the implementations do)
-      - Instruction to check: do assertions now verify the right things?
-        Any important behaviors still unchecked?
+      1. Spawn a review sub-agent. Give it:
+         - The documentation file paths
+         - The test files you modified
+         - Summary of exploration findings (what the implementations do)
+         - Instruction to check: do assertions now verify the right things?
+           Any important behaviors still unchecked? Do tests pass?
 
-      Address the feedback, then commit.
+      2. Spawn a filter sub-agent. Give it the review feedback and ask:
+         which concerns are genuine issues vs over-cautious?
+
+      3. Address filtered feedback, then commit.
 
   - name: consolidation
     prompt: |
@@ -109,11 +116,14 @@ modes:
 
       **STEP 4: REVIEW**
 
-      Spawn a review sub-agent. Give it:
-      - The documentation file paths
-      - The test files you modified
-      - Summary of exploration findings (what each consolidated test covered)
-      - Instruction to check: was any coverage lost? Are remaining tests
-        clear in purpose? Do tests pass?
+      1. Spawn a review sub-agent. Give it:
+         - The documentation file paths
+         - The test files you modified
+         - Summary of exploration findings (what each consolidated test covered)
+         - Instruction to check: was any coverage lost? Are remaining tests
+           clear in purpose? Do tests pass?
 
-      Address the feedback, then commit.
+      2. Spawn a filter sub-agent. Give it the review feedback and ask:
+         which concerns are genuine issues vs over-cautious?
+
+      3. Address filtered feedback, then commit.

@@ -19,6 +19,17 @@ prompt_suffix: |
   Do not use the "question" tool or any tool requiring user input.
   Stage and commit your changes at the end with a descriptive message.
 
+  CRITICAL - When a test you write fails:
+  1. First check: Is your test wrong? (wrong assertion, bad setup, misunderstood API)
+     -> If yes, fix your test.
+  2. If your test logic is correct, you may have found a bug in the implementation.
+     -> Do NOT "fix" your test to match broken behavior.
+     -> Do NOT delete the test.
+     -> Mark it as skipped with a clear reason: @pytest.mark.skip(reason="Reveals bug: [description]")
+     -> This preserves the test as documentation while not breaking CI.
+
+  Never weaken or delete a correct test just because it fails.
+
 modes:
   - name: coverage
     prompt: |
@@ -63,11 +74,66 @@ modes:
 
       **STEP 4: REVIEW**
 
-      Spawn a review sub-agent. Give it:
-      - The documentation file paths
-      - The test files you created/modified
-      - Summary of exploration (what complexity exists, what you chose to test)
-      - Instruction to check: do new tests verify meaningful behavior?
-        Any critical paths still uncovered? Do tests pass?
+      1. Spawn a review sub-agent. Give it:
+         - The documentation file paths
+         - The test files you created/modified
+         - Summary of exploration findings (what complexity exists, what you chose to test)
+         - Instruction to check: do new tests verify meaningful behavior?
+           Any critical paths still uncovered? Do tests pass?
 
-      Address the feedback, then commit.
+      2. Spawn a filter sub-agent. Give it the review feedback and ask:
+         which concerns are genuine issues vs over-cautious?
+
+      3. Address filtered feedback, then commit.
+
+  - name: consolidation
+    prompt: |
+      Good test suites are lean. Redundant tests slow down the suite, obscure
+      intent, and multiply maintenance burden without adding confidence.
+
+      **STEP 1: IDENTIFY**
+
+      Survey the test files. Identify consolidation candidates:
+      - Near-duplicate tests that verify the same behavior differently
+      - Tests that could be parameterized instead of copy-pasted
+      - Obsolete tests for removed functionality
+      - Tests that overlap significantly with others
+
+      Note which tests are candidates and what they're testing.
+
+      **STEP 2: EXPLORE**
+
+      For consolidation candidates, spawn sub-agents to understand what each
+      test actually verifies:
+
+      "Read [test file] and [implementation file]. For tests X, Y, Z: What
+      specific behavior does each verify? Are they truly redundant or do they
+      cover different edge cases? Which test best captures the intent?"
+
+      This prevents accidentally removing coverage during consolidation.
+
+      **STEP 3: CONSOLIDATE**
+
+      With understanding of what each test covers:
+      - Merge truly redundant tests into one clear test
+      - Parameterize tests that differ only in input values
+      - Remove tests for functionality that no longer exists
+      - Keep tests that look similar but cover genuinely different cases
+
+      Deleting a redundant test is as valuable as writing a new one.
+
+      "No changes needed" is a valid outcome if tests are already lean.
+
+      **STEP 4: REVIEW**
+
+      1. Spawn a review sub-agent. Give it:
+         - The documentation file paths
+         - The test files you modified
+         - Summary of exploration findings (what each consolidated test covered)
+         - Instruction to check: was any coverage lost? Are remaining tests
+           clear in purpose? Do tests pass?
+
+      2. Spawn a filter sub-agent. Give it the review feedback and ask:
+         which concerns are genuine issues vs over-cautious?
+
+      3. Address filtered feedback, then commit.
