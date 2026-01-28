@@ -42,6 +42,10 @@ modes:
       Before editing any documentation, read the corresponding source code to verify
       current behavior.
 
+      Consider who reads this documentation—internal developers, end users, or
+      newcomers. Internal docs can assume familiarity; external docs need more
+      context. Tailor detail to the audience.
+
       Focus on improvements that readers will notice. A few meaningful fixes—
       correcting inaccuracies, clarifying confusing sections—are better than
       many minor tweaks. When adding content, balance it with deletions elsewhere.
@@ -76,9 +80,8 @@ modes:
 
       Deletion is value. Removing redundant content is as important as improving
       what remains. A smaller, well-organized documentation set serves readers
-      better than a comprehensive but scattered one. If the quality pass added
-      significant content, look for offsetting deletions to keep the footprint
-      manageable.
+      better than a comprehensive but scattered one. If documentation has grown
+      large, look for offsetting deletions to keep the footprint manageable.
 
       "No changes needed" is a valid outcome.
 
