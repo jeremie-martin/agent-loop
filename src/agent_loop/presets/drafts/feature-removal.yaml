@@ -1,0 +1,98 @@
+# DRAFT: Exploration-first pattern for feature removal
+#
+# This preset experiments with using sub-agents for exploration BEFORE
+# implementation, not just for review after. The hypothesis:
+#
+# 1. Sub-agents explore different aspects in parallel (code, tests, docs)
+# 2. Main agent synthesizes their findings into a complete picture
+# 3. Implementation is informed by exploration, not just what main agent read
+# 4. Review sub-agents receive exploration context (it's "gold")
+#
+# This is experimental. We're testing whether this pattern:
+# - Produces more thorough changes (nothing missed)
+# - Uses context more efficiently (summaries vs raw code)
+# - Works well with stateless design
+#
+# Open questions:
+# - Should exploration findings be written to a file for later modes?
+# - How much exploration is too much? (context cost of sub-agent spawning)
+# - When is this pattern worth the overhead vs simpler survey-and-fix?
+
+name: feature-removal
+description: "[DRAFT] Remove a feature with exploration-first sub-agents"
+
+prompt_prefix: |
+  FIRST: Find and read all markdown documentation in this project before doing anything else.
+  Search for and read: README files (root and subdirectories), CLAUDE.md, AGENTS.md, and all
+  files in docs/ or documentation/ directories. Understand the codebase's patterns, conventions,
+  and architecture. Only then proceed with your task.
+
+  IMPORTANT - When spawning sub-agents:
+  Sub-agents do not automatically have the context you have. For each sub-agent you spawn:
+  1. Give it the exact file paths to relevant documentation (CLAUDE.md, README, etc.)
+  2. Explicitly instruct it to read those files completely before starting its task
+  3. Include any other specific files it needs to examine
+
+  Do not assume sub-agents will find documentation on their own — give them the paths.
+
+prompt_suffix: |
+  Do not use the "question" tool or any tool requiring user input.
+  Stage and commit your changes at the end with a descriptive message.
+
+modes:
+  - name: remove
+    prompt: |
+      You are removing a feature from this codebase. Removal must be complete—no
+      orphaned code, no broken tests, no stale documentation.
+
+      **PHASE 1: EXPLORATION**
+
+      Before making any changes, spawn sub-agents to understand the full impact.
+      Each sub-agent explores one aspect and reports back a summary:
+
+      1. **Code impact sub-agent**: "Find all code that implements, uses, or depends
+         on [feature]. Report: file paths, function names, how they relate to the
+         feature. Focus on direct dependencies and callers."
+
+      2. **Test impact sub-agent**: "Find all tests that cover [feature]. Report:
+         test file paths, test names, what aspect they test. Note which tests will
+         need removal vs modification."
+
+      3. **Documentation impact sub-agent**: "Find all documentation that mentions
+         [feature]. Report: file paths, sections, whether they describe the feature
+         directly or reference it incidentally."
+
+      Wait for all exploration sub-agents to complete. Synthesize their findings
+      into a mental model of everything that needs to change.
+
+      **PHASE 2: IMPLEMENTATION**
+
+      With the full picture from exploration, systematically remove the feature:
+
+      1. Remove the core implementation
+      2. Update or remove code that depended on it
+      3. Remove tests that only tested the removed feature
+      4. Update tests that tested the feature alongside other things
+      5. Remove or update documentation references
+
+      Work methodically through the exploration findings. Check off each item.
+      If exploration missed something, note it for the review phase.
+
+      **PHASE 3: REVIEW**
+
+      Spawn a review sub-agent. Give it:
+      - The documentation file paths and instruct it to read them first
+      - The files you modified
+      - **The exploration findings** (summarize what each exploration sub-agent found)
+      - Instruction to check: is removal complete? Any orphaned references?
+        Any broken imports or calls? Do tests pass?
+
+      The exploration context helps the reviewer know what SHOULD have been
+      removed, not just what WAS removed.
+
+      Address the feedback, then commit.
+
+      ---
+
+      If the feature doesn't exist or is already removed, "no changes needed"
+      is a valid outcome.

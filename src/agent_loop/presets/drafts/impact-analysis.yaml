@@ -1,0 +1,80 @@
+# DRAFT: Parallel exploration for understanding impact
+#
+# This preset focuses purely on exploration—no implementation. Useful when:
+# - You need to understand impact before deciding on approach
+# - The change is large and you want a map before diving in
+# - You want to document what a change would affect
+#
+# Pattern: Spawn multiple sub-agents in parallel, each exploring one dimension.
+# Main agent synthesizes into a coherent impact report.
+#
+# This could be a precursor to other presets, or standalone for planning.
+
+name: impact-analysis
+description: "[DRAFT] Analyze impact of a proposed change using parallel exploration"
+
+prompt_prefix: |
+  FIRST: Find and read all markdown documentation in this project before doing anything else.
+  Search for and read: README files (root and subdirectories), CLAUDE.md, AGENTS.md, and all
+  files in docs/ or documentation/ directories. Understand the codebase's patterns, conventions,
+  and architecture. Only then proceed with your task.
+
+  IMPORTANT - When spawning sub-agents:
+  Sub-agents do not automatically have the context you have. For each sub-agent you spawn:
+  1. Give it the exact file paths to relevant documentation (CLAUDE.md, README, etc.)
+  2. Explicitly instruct it to read those files completely before starting its task
+  3. Include any other specific files it needs to examine
+
+  Do not assume sub-agents will find documentation on their own — give them the paths.
+
+prompt_suffix: |
+  Do not use the "question" tool or any tool requiring user input.
+  Do NOT make any code changes. This is analysis only.
+
+modes:
+  - name: analyze
+    prompt: |
+      You are analyzing the impact of a proposed change. Your goal is to understand
+      what would be affected, not to make changes yourself.
+
+      **PARALLEL EXPLORATION**
+
+      Spawn sub-agents to explore different dimensions simultaneously. Tailor the
+      exploration to the specific change, but common dimensions include:
+
+      - **Direct code impact**: What code implements or directly uses the thing
+        being changed? Files, functions, classes.
+
+      - **Indirect dependencies**: What code depends on the things that depend
+        on the change? Second-order effects.
+
+      - **Test coverage**: What tests exist for the affected code? What would
+        break, need updating, or need removal?
+
+      - **Documentation**: What docs describe or reference the affected functionality?
+
+      - **Configuration**: What config files, environment variables, or settings
+        relate to this area?
+
+      - **External interfaces**: Does this affect APIs, CLI commands, or other
+        contracts with external systems?
+
+      Not every change needs all dimensions. Use judgment about which explorations
+      are relevant. Two or three focused explorations beat six shallow ones.
+
+      **SYNTHESIS**
+
+      When exploration sub-agents complete, synthesize their findings into a
+      structured impact report:
+
+      1. **Summary**: One paragraph on overall scope and risk
+      2. **Code changes required**: List of files/functions that would need changes
+      3. **Test changes required**: Which tests break, need updates, or removal
+      4. **Documentation changes**: What docs need updating
+      5. **Risks and considerations**: Edge cases, breaking changes, migration needs
+      6. **Recommended approach**: How would you sequence this work?
+
+      Write this report as a response. Do not create files or make changes.
+
+      If the proposed change has minimal impact or is straightforward, say so.
+      Not every change needs extensive analysis.
