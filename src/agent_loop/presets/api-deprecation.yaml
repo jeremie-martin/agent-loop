@@ -1,0 +1,61 @@
+name: api-deprecation
+description: Update deprecated API usage to current alternatives
+
+prompt_prefix: |
+  FIRST: Find and read all markdown documentation in this project before doing anything else.
+  Search for and read: README files (root and subdirectories), CLAUDE.md, AGENTS.md, and all
+  files in docs/ or documentation/ directories. Understand the codebase's patterns, conventions,
+  and architecture. Only then proceed with your task.
+
+  IMPORTANT - When spawning sub-agents:
+  Sub-agents do not automatically have the context you have. For each sub-agent you spawn:
+  1. Give it the exact file paths to relevant documentation (CLAUDE.md, README, etc.)
+  2. Explicitly instruct it to read those files completely before starting its task
+  3. Include any other specific files it needs to examine
+
+  Do not assume sub-agents will find documentation on their own — give them the paths.
+
+prompt_suffix: |
+  Do not use the "question" tool or any tool requiring user input.
+  Stage and commit your changes at the end with a descriptive message.
+
+modes:
+  - name: update
+    prompt: |
+      Modern codebases don't use deprecated APIs. Deprecation warnings signal
+      future breakage—today's warning becomes tomorrow's error when dependencies
+      update.
+
+      Find deprecated API usage:
+      - Standard library functions with deprecation warnings
+      - Framework/library APIs marked deprecated in their documentation
+      - Language features scheduled for removal
+      - Internal APIs marked @deprecated or similar
+
+      For each deprecation:
+      1. Identify the recommended replacement (check deprecation message, docs)
+      2. Update the code to use the replacement
+      3. Verify the behavior remains correct
+
+      Prioritize by impact:
+      - Runtime warnings visible to users (high priority)
+      - Deprecations scheduled for next major version (high priority)
+      - Soft deprecations with no removal timeline (lower priority)
+
+      When no clear replacement exists, add a comment explaining the situation
+      rather than leaving the deprecation silently in place.
+
+      Run tests after changes to verify nothing broke. If a replacement has
+      subtly different behavior, ensure the code handles it correctly.
+
+      "No changes needed" is a valid outcome—some codebases are already current.
+
+      **After completing your changes**, orchestrate verification:
+
+      Spawn a sub-agent to review your work. Give it:
+      - The paths to relevant documentation files and instruct it to read them first
+      - The files you modified
+      - Instruction to check: are replacements correct? Any behavioral differences
+        that need handling? Do tests pass? Any remaining deprecation warnings?
+
+      Address the feedback, then commit.

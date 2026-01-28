@@ -1,0 +1,94 @@
+name: comment-hygiene
+description: Fix inaccurate comments and remove low-value ones
+
+prompt_prefix: |
+  FIRST: Find and read all markdown documentation in this project before doing anything else.
+  Search for and read: README files (root and subdirectories), CLAUDE.md, AGENTS.md, and all
+  files in docs/ or documentation/ directories. Understand the codebase's patterns, conventions,
+  and architecture. Only then proceed with your task.
+
+  RESTRAINT PRINCIPLE: Comments are documentation—every one is a maintenance liability.
+  Inaccurate comments are worse than no comments. This preset removes and fixes; it does
+  not add. Well-written code needs few comments.
+
+  IMPORTANT - When spawning sub-agents:
+  Sub-agents do not automatically have the context you have. For each sub-agent you spawn:
+  1. Give it the exact file paths to relevant documentation (CLAUDE.md, README, etc.)
+  2. Explicitly instruct it to read those files completely before starting its task
+  3. Include any other specific files it needs to examine
+
+  Do not assume sub-agents will find documentation on their own — give them the paths.
+
+prompt_suffix: |
+  Do not use the "question" tool or any tool requiring user input.
+  Stage and commit your changes at the end with a descriptive message.
+
+modes:
+  - name: accuracy
+    prompt: |
+      Accurate comments match the code. Inaccurate comments actively mislead—a
+      developer trusts the comment, misunderstands the code, and introduces bugs.
+
+      Find comments that have drifted from reality:
+      - Describe behavior the code no longer has
+      - Reference variables, functions, or classes that were renamed or removed
+      - Explain a "why" that's no longer true (requirements changed)
+      - Document parameters or return values that don't match the signature
+
+      For each inaccurate comment, either:
+      - Update it to match current behavior (if the explanation is still valuable)
+      - Delete it (if the code is clear without it)
+
+      Deletion is often better. If the code is self-explanatory, a comment adds
+      maintenance burden without adding value.
+
+      Don't add new comments—this mode fixes what exists. Don't rewrite accurate
+      comments in a "better" style.
+
+      "No changes needed" is a valid outcome.
+
+      **After completing your changes**, orchestrate verification:
+
+      Spawn a sub-agent to review your work. Give it:
+      - The paths to relevant documentation files and instruct it to read them first
+      - The files you modified
+      - Instruction to check: are the remaining comments accurate? Were any
+        valuable explanations lost? Did any deletions remove important context?
+
+      Address the feedback, then commit.
+
+  - name: quality
+    prompt: |
+      Good comments explain WHY, not WHAT. The code shows what happens; comments
+      explain reasoning that isn't obvious from the code itself.
+
+      Comments that should be removed (they add no value):
+      - Restate what the code does (`i++ // increment i`)
+      - Explain obvious standard library usage
+      - Empty or placeholder comments (`// TODO`, `// FIXME` that will never be addressed)
+      - Commented-out code (use version control, not comments)
+      - Section dividers that just add noise
+
+      Comments that earn their place:
+      - Explain business logic or domain knowledge the code assumes
+      - Warn about non-obvious gotchas or edge cases
+      - Reference external specifications, tickets, or requirements
+      - Explain WHY a non-obvious approach was chosen
+
+      Fewer, better comments. A codebase with 10 essential comments is better than
+      one with 100 that nobody reads.
+
+      Don't add comments—only remove low-value ones or improve existing ones that
+      have potential but are poorly written.
+
+      "No changes needed" is a valid outcome.
+
+      **After completing your changes**, orchestrate verification:
+
+      Spawn a sub-agent to review your work. Give it:
+      - The paths to relevant documentation files and instruct it to read them first
+      - The files you modified
+      - Instruction to check: were valuable comments preserved? Are remaining
+        comments genuinely useful? Was anything important lost?
+
+      Address the feedback, then commit.
