@@ -218,6 +218,67 @@ Don't imply every iteration must produce changes. Agents should report "nothing 
 
 ---
 
+## Documentation-Specific Guidance
+
+Documentation tasks require additional constraints beyond code changes. Unlike code, documentation has no compiler, no tests, and no clear signal when it's "wrong." This makes explosion especially likely.
+
+### The Maintenance Burden
+
+Every line of documentation is a maintenance liability. Unlike code that fails visibly when behavior changes, documentation rots silently. Long docs become unread docs.
+
+**Calibrate scope to maintenance capacity:**
+- Internal-facing docs can assume context; external docs need more
+- Frequently-changing features need minimal docs (they'll go stale)
+- Stable APIs deserve thorough coverage
+
+### Size Is a Quality Signal
+
+For documentation, "comprehensive" is often an anti-pattern. A 50-line troubleshooting guide that covers common cases serves readers better than an 800-line guide that covers everything but nobody reads.
+
+**Guidance for documentation prompts:**
+- "Prioritize the 5 most common issues" over "document all known issues"
+- "Keep sections scannable" (readers skim, they don't read)
+- "A shorter doc that gets read beats a longer doc that doesn't"
+
+### Deletion Is the Default
+
+For code, deletion requires justification (is it really unused?). For documentation, **expansion** requires justification. The burden of proof should be inverted:
+
+| Code | Documentation |
+|------|---------------|
+| "Can we safely delete this?" | "Does this earn its place?" |
+| Add if functionality is missing | Add only if readers genuinely need it |
+| Coverage is generally good | Coverage can be harmful (stale, overwhelming) |
+
+**Frame deletion as the natural choice:**
+- "Remove content that duplicates what code comments already say"
+- "If readers can figure it out from the code, they don't need a doc"
+- "Each section must justify its existence to readers"
+
+### Audience-Appropriate Scope
+
+Documentation has an audience that code doesn't. The same content might be essential for beginners and noise for experts.
+
+**Require prompts to specify the audience:**
+- "Internal team documentation" → assume familiarity, be terse
+- "User-facing documentation" → define terms, include examples
+- "Onboarding documentation" → explain why, not just what
+
+Prompts that don't specify an audience tend to produce "comprehensive" docs that serve no one well.
+
+### Measuring Success
+
+Code quality has proxies: tests pass, linter is happy, type checker approves. Documentation has none of these. This makes it easy for an agent to "succeed" by adding volume.
+
+**Explicit success criteria for doc tasks:**
+- "Success is fewer total lines while covering the same topics"
+- "Success is a reader being able to find X in under 30 seconds"
+- "Success is removing content that doesn't match current behavior"
+
+Never frame success as "more complete" or "more thorough"—these are traps.
+
+---
+
 ## Ground Claims in Source
 
 Require agents to verify claims against actual source code. Phrases like "before editing, read the corresponding source code" and "cite specific code locations" prevent factual drift.
@@ -237,3 +298,9 @@ Before finalizing a prompt, verify:
 - [ ] **Verification included**: Verification pattern written out explicitly?
 - [ ] **Inaction validated**: Does it say "no changes needed is valid"?
 - [ ] **Deletion permitted**: Does it frame removal as valuable, not just allowed?
+
+**For documentation tasks:**
+- [ ] **Audience specified**: Does it say who the documentation is for?
+- [ ] **Size treated as cost**: Does it frame length as a liability, not a benefit?
+- [ ] **Measurable success**: Is success defined without "comprehensive" or "thorough"?
+- [ ] **Expansion requires justification**: Is adding content treated as needing a reason?
