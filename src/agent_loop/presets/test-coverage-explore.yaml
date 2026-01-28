@@ -1,0 +1,73 @@
+name: test-coverage-explore
+description: Improve test coverage with exploration of implementation complexity
+
+prompt_prefix: |
+  FIRST: Find and read all markdown documentation in this project before doing anything else.
+  Search for and read: README files (root and subdirectories), CLAUDE.md, AGENTS.md, and all
+  files in docs/ or documentation/ directories. Understand the codebase's patterns, conventions,
+  and architecture. Only then proceed with your task.
+
+  IMPORTANT - When spawning sub-agents:
+  Sub-agents do not automatically have the context you have. For each sub-agent you spawn:
+  1. Give it the exact file paths to relevant documentation (CLAUDE.md, README, etc.)
+  2. Explicitly instruct it to read those files completely before starting its task
+  3. Include any other specific files it needs to examine
+
+  Do not assume sub-agents will find documentation on their own — give them the paths.
+
+prompt_suffix: |
+  Do not use the "question" tool or any tool requiring user input.
+  Stage and commit your changes at the end with a descriptive message.
+
+modes:
+  - name: coverage
+    prompt: |
+      Meaningful test coverage focuses on code that matters—complex logic,
+      critical paths, error handling. Not every line needs a test, but important
+      behavior should be verified.
+
+      **STEP 1: IDENTIFY GAPS**
+
+      Survey the codebase for untested or undertested areas:
+      - Core business logic without corresponding tests
+      - Error handling paths that aren't exercised
+      - Complex functions with few or no tests
+      - Public APIs without integration tests
+
+      Note which areas lack coverage and where the implementation lives.
+
+      **STEP 2: EXPLORE COMPLEXITY**
+
+      For the coverage gaps you identified, spawn sub-agents to understand
+      the implementation complexity:
+
+      "Read [implementation file/module]. Analyze: What are the code paths?
+      What conditions branch the logic? What error cases exist? What would
+      be the most valuable behaviors to test? What edge cases are tricky?"
+
+      This tells you what tests would actually catch bugs vs what would be
+      low-value coverage padding.
+
+      **STEP 3: ADD TESTS**
+
+      With understanding of the implementation, add tests that matter:
+      - Test the core happy path first
+      - Add edge cases the exploration revealed as tricky
+      - Test error handling for likely failure modes
+      - Skip trivial code that can't really break
+
+      Write tests that would catch real bugs. A few tests on complex logic
+      beat many tests on simple getters.
+
+      "No new tests needed" is valid if critical paths are already covered.
+
+      **STEP 4: REVIEW**
+
+      Spawn a review sub-agent. Give it:
+      - The documentation file paths
+      - The test files you created/modified
+      - Summary of exploration (what complexity exists, what you chose to test)
+      - Instruction to check: do new tests verify meaningful behavior?
+        Any critical paths still uncovered? Do tests pass?
+
+      Address the feedback, then commit.

@@ -1,0 +1,76 @@
+name: code-duplication-explore
+description: Consolidate duplicated code with exploration of context and purpose
+
+prompt_prefix: |
+  FIRST: Find and read all markdown documentation in this project before doing anything else.
+  Search for and read: README files (root and subdirectories), CLAUDE.md, AGENTS.md, and all
+  files in docs/ or documentation/ directories. Understand the codebase's patterns, conventions,
+  and architecture. Only then proceed with your task.
+
+  IMPORTANT - When spawning sub-agents:
+  Sub-agents do not automatically have the context you have. For each sub-agent you spawn:
+  1. Give it the exact file paths to relevant documentation (CLAUDE.md, README, etc.)
+  2. Explicitly instruct it to read those files completely before starting its task
+  3. Include any other specific files it needs to examine
+
+  Do not assume sub-agents will find documentation on their own — give them the paths.
+
+prompt_suffix: |
+  Do not use the "question" tool or any tool requiring user input.
+  Stage and commit your changes at the end with a descriptive message.
+
+modes:
+  - name: consolidate
+    prompt: |
+      Well-factored code doesn't repeat itself unnecessarily. But not all
+      duplication is bad—premature abstraction creates coupling worse than
+      the duplication it removes.
+
+      **STEP 1: IDENTIFY CANDIDATES**
+
+      Survey the codebase for duplication:
+      - Code blocks of 3+ lines appearing in 3+ places
+      - Functions that do nearly the same thing with minor variations
+      - Copy-pasted logic with only variable names changed
+
+      Note where the duplicates are and what they appear to do.
+
+      **STEP 2: EXPLORE PURPOSE**
+
+      Similar-looking code might serve different purposes. Spawn sub-agents
+      to understand the context of each duplicate:
+
+      "Read [file A, lines X-Y] and [file B, lines X-Y]. These look similar.
+      Analyze: Do they serve the same purpose or just look alike? Would they
+      change together or might they diverge? What's the semantic meaning of
+      each? Should they be consolidated or kept separate?"
+
+      This prevents creating bad abstractions that couple unrelated things.
+
+      **STEP 3: CONSOLIDATE (OR DON'T)**
+
+      With understanding of purpose, make informed decisions:
+
+      For true duplicates (same purpose, should change together):
+      - Extract to a well-named shared function
+      - Place it where it logically belongs
+      - Update all call sites
+
+      For false duplicates (look similar but different purpose):
+      - Leave them separate
+      - Optionally add comments clarifying why they're not consolidated
+
+      A few clear consolidations are better than aggressive DRYing.
+
+      "No changes needed" is valid—some duplication is healthy.
+
+      **STEP 4: REVIEW**
+
+      Spawn a review sub-agent. Give it:
+      - The documentation file paths
+      - The files you modified
+      - Summary of exploration (which duplicates were true vs false)
+      - Instruction to check: are abstractions correct? Do all call sites
+        work? Any cases where the "duplicates" actually differed?
+
+      Address the feedback, then commit.

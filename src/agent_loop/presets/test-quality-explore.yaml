@@ -1,0 +1,119 @@
+name: test-quality-explore
+description: Improve test quality with exploration of implementation context
+
+prompt_prefix: |
+  FIRST: Find and read all markdown documentation in this project before doing anything else.
+  Search for and read: README files (root and subdirectories), CLAUDE.md, AGENTS.md, and all
+  files in docs/ or documentation/ directories. Understand the codebase's patterns, conventions,
+  and architecture. Only then proceed with your task.
+
+  IMPORTANT - When spawning sub-agents:
+  Sub-agents do not automatically have the context you have. For each sub-agent you spawn:
+  1. Give it the exact file paths to relevant documentation (CLAUDE.md, README, etc.)
+  2. Explicitly instruct it to read those files completely before starting its task
+  3. Include any other specific files it needs to examine
+
+  Do not assume sub-agents will find documentation on their own — give them the paths.
+
+prompt_suffix: |
+  Do not use the "question" tool or any tool requiring user input.
+  Stage and commit your changes at the end with a descriptive message.
+
+modes:
+  - name: assertions
+    prompt: |
+      Strong tests have strong assertions. Weak assertions let bugs slip through—
+      a test that passes when the code is broken provides false confidence.
+
+      **STEP 1: IDENTIFY**
+
+      Survey the test files. Identify tests with weak assertions:
+      - Assertions that only check truthiness, not specific values
+      - Missing assertions (test runs code but verifies nothing meaningful)
+      - Assertions on incidental details rather than core behavior
+      - Overly loose comparisons that would pass with wrong values
+
+      Note which tests have problems and what implementation they're testing.
+
+      **STEP 2: EXPLORE**
+
+      For the problematic tests you identified, spawn sub-agents to understand
+      the implementation being tested. For each area:
+
+      "Read [implementation file/module]. Explain: What are the key behaviors?
+      What are the important edge cases? What invariants should always hold?
+      What would a strong test verify?"
+
+      This gives you the context to know what assertions actually matter.
+
+      **STEP 3: IMPROVE**
+
+      With understanding of the implementation, strengthen the weak assertions:
+      - Assert on specific expected values, not just truthiness
+      - Verify the core behavior the implementation promises
+      - Add edge case checks where the exploration revealed them
+      - Remove assertions on implementation details that don't matter
+
+      A few tests with strong assertions are better than many with weak ones.
+
+      "No changes needed" is a valid outcome if assertions are already strong.
+
+      **STEP 4: REVIEW**
+
+      Spawn a review sub-agent. Give it:
+      - The documentation file paths
+      - The test files you modified
+      - Summary of what you learned from exploration (what the implementations do)
+      - Instruction to check: do assertions now verify the right things?
+        Any important behaviors still unchecked?
+
+      Address the feedback, then commit.
+
+  - name: consolidation
+    prompt: |
+      Good test suites are lean. Redundant tests slow down the suite, obscure
+      intent, and multiply maintenance burden without adding confidence.
+
+      **STEP 1: IDENTIFY**
+
+      Survey the test files. Identify consolidation candidates:
+      - Near-duplicate tests that verify the same behavior differently
+      - Tests that could be parameterized instead of copy-pasted
+      - Obsolete tests for removed functionality
+      - Tests that overlap significantly with others
+
+      Note which tests are candidates and what they're testing.
+
+      **STEP 2: EXPLORE**
+
+      For consolidation candidates, spawn sub-agents to understand what each
+      test actually verifies:
+
+      "Read [test file] and [implementation file]. For tests X, Y, Z: What
+      specific behavior does each verify? Are they truly redundant or do they
+      cover different edge cases? Which test best captures the intent?"
+
+      This prevents accidentally removing coverage during consolidation.
+
+      **STEP 3: CONSOLIDATE**
+
+      With understanding of what each test covers:
+      - Merge truly redundant tests into one clear test
+      - Parameterize tests that differ only in input values
+      - Remove tests for functionality that no longer exists
+      - Keep tests that look similar but cover genuinely different cases
+
+      Deleting a redundant test is as valuable as writing a new one.
+
+      "No changes needed" is a valid outcome if tests are already lean.
+
+      **STEP 4: REVIEW**
+
+      Spawn a review sub-agent. Give it:
+      - The documentation file paths
+      - The test files you modified
+      - Summary of exploration findings (what each consolidated test covered)
+      - Instruction to check: was any coverage lost? Are remaining tests
+        clear in purpose? Do tests pass?
+
+      Address the feedback, then commit.

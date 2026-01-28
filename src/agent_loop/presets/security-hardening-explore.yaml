@@ -1,0 +1,127 @@
+name: security-hardening-explore
+description: Fix security vulnerabilities with exploration of data flow
+
+prompt_prefix: |
+  FIRST: Find and read all markdown documentation in this project before doing anything else.
+  Search for and read: README files (root and subdirectories), CLAUDE.md, AGENTS.md, and all
+  files in docs/ or documentation/ directories. Understand the codebase's patterns, conventions,
+  and architecture. Only then proceed with your task.
+
+  IMPORTANT - When spawning sub-agents:
+  Sub-agents do not automatically have the context you have. For each sub-agent you spawn:
+  1. Give it the exact file paths to relevant documentation (CLAUDE.md, README, etc.)
+  2. Explicitly instruct it to read those files completely before starting its task
+  3. Include any other specific files it needs to examine
+
+  Do not assume sub-agents will find documentation on their own — give them the paths.
+
+prompt_suffix: |
+  Do not use the "question" tool or any tool requiring user input.
+  Stage and commit your changes at the end with a descriptive message.
+
+modes:
+  - name: injection
+    prompt: |
+      Injection vulnerabilities let attackers execute unintended operations by
+      crafting malicious input. A secure codebase validates and sanitizes all
+      user input before it reaches dangerous operations.
+
+      **STEP 1: IDENTIFY ENTRY POINTS**
+
+      Survey the codebase for potential injection points:
+      - SQL queries with string interpolation
+      - Shell commands with user-controlled arguments
+      - Dynamic code evaluation (eval, exec)
+      - Template rendering with unescaped input
+      - File paths constructed from user input
+
+      Note where these patterns appear.
+
+      **STEP 2: EXPLORE DATA FLOW**
+
+      Spawn sub-agents to trace how user input flows through the system:
+
+      "Read [entry point file] and trace the data flow. Where does user input
+      enter? What transformations does it undergo? Does it reach any dangerous
+      operations (SQL, shell, eval, file system)? Is there validation or
+      sanitization along the way?"
+
+      This reveals whether apparent vulnerabilities are actually exploitable
+      or already protected by validation elsewhere.
+
+      **STEP 3: HARDEN**
+
+      With understanding of data flow, fix actual vulnerabilities:
+      - SQL: Use parameterized queries, not string interpolation
+      - Shell: Use subprocess with array arguments, not shell=True
+      - Eval: Remove if possible, or strictly validate input
+      - Templates: Use auto-escaping, escape manual interpolation
+      - Paths: Validate against directory traversal
+
+      Focus on paths where user input actually reaches dangerous operations.
+      Don't harden internal-only code paths that can't receive untrusted input.
+
+      "No changes needed" is valid if input handling is already secure.
+
+      **STEP 4: REVIEW**
+
+      Spawn a review sub-agent. Give it:
+      - The documentation file paths
+      - The files you modified
+      - Summary of data flow exploration (what paths exist, what's protected)
+      - Instruction to check: are fixes correct? Any paths missed?
+        Any over-hardening of internal code? Do tests pass?
+
+      Address the feedback, then commit.
+
+  - name: boundaries
+    prompt: |
+      Trust boundaries separate trusted from untrusted contexts. Data crossing
+      boundaries must be validated. A secure codebase knows where its boundaries
+      are and enforces them.
+
+      **STEP 1: IDENTIFY BOUNDARIES**
+
+      Survey the codebase for trust boundaries:
+      - API endpoints (external input enters)
+      - File parsing (external data enters)
+      - Inter-service communication
+      - User session handling
+      - Configuration loading
+
+      Note where boundaries exist.
+
+      **STEP 2: EXPLORE ENFORCEMENT**
+
+      Spawn sub-agents to understand how boundaries are enforced:
+
+      "Read [boundary module]. Analyze: What validation exists? What
+      assumptions does the code make about input? Are there type checks,
+      schema validation, sanitization? What happens with invalid input?
+      Are there gaps where untrusted data could slip through?"
+
+      This reveals whether boundaries are actually enforced or just assumed.
+
+      **STEP 3: STRENGTHEN**
+
+      With understanding of current enforcement, strengthen weak boundaries:
+      - Add input validation where missing
+      - Use schema validation for structured data
+      - Add type checking at boundary crossings
+      - Fail explicitly on invalid input (don't silently accept)
+      - Log boundary violations for monitoring
+
+      Focus on boundaries that actually face untrusted input.
+
+      "No changes needed" is valid if boundaries are already well-enforced.
+
+      **STEP 4: REVIEW**
+
+      Spawn a review sub-agent. Give it:
+      - The documentation file paths
+      - The files you modified
+      - Summary of boundary exploration (what boundaries exist, how enforced)
+      - Instruction to check: is validation correct? Any boundaries missed?
+        Is error handling appropriate? Do tests pass?
+
+      Address the feedback, then commit.
